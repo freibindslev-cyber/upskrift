@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UpSkrift</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="UpSkrift" />
+    <meta name="application-name" content="UpSkrift" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#FBF6EE" />
+    <link rel="icon" type="image/png" href="upskrift-icon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&family=Patrick+Hand&display=swap"
+    />
+    <link rel="stylesheet" href="hark.css" />
+    <link rel="stylesheet" href="hark-hero.css" />
+    <style>
+      /* Varm køkkenpalet */
+      :root {
+        --text-primary: light-dark(#3A2A1E, #F5EADB);
+        --text-secondary: light-dark(#6E5A49, #C2B09C);
+        --text-primary-on: light-dark(#FBF6EE, #1F1712);
+        --fill-primary: light-dark(#3A2A1E, #F5EADB);
+        --fill-primary-on: light-dark(#FBF6EE, #1F1712);
+        --fill-tertiary: light-dark(#F3EADB, #2D231B);
+        --stroke-primary: light-dark(#3A2A1E26, #F5EADB26);
+        --stroke-secondary: light-dark(#3A2A1E14, #F5EADB14);
+        --hover-wash: light-dark(#3A2A1E0d, #F5EADB0d);
+        --x-accent: #B84A32;
+        --x-accent-soft: #C8553D;
+        --x-on-accent: #FFFFFF;
+        --x-sage-ink: light-dark(#55663C, #BFCFA2);
+        --x-sage-bg: light-dark(#E7ECDC, #6B7F4E40);
+        --x-card: light-dark(#FFFDF9, #2A2019);
+        --x-shadow: 0 1px 2px light-dark(#3A2A1E12, #0000004d), 0 6px 18px light-dark(#3A2A1E17, #00000040);
+        --x-placeholder: linear-gradient(135deg, light-dark(#F7E4CF, #3A2A1E), light-dark(#EECBB0, #4A3324));
+      }
+      body { background: var(--fill-primary-on); color: var(--text-primary); }
+      [hidden] { display: none !important; }
+      .page { max-width: 720px; padding-bottom: 160px; }
+      body.x-in-recipe .page { padding-bottom: 40px; }
+
+      /* Top bar */
+      .x-top { display: grid; gap: 12px; position: sticky; top: 0; z-index: 10; padding: 12px 0 10px; background: var(--fill-primary-on); }
+      .x-top h1 { margin: 0; font: var(--type-title); font-weight: var(--weight-medium); }
+      .x-brand { display: flex; align-items: center; gap: 12px; }
+      .x-brand img { width: 56px; height: 56px; object-fit: contain; border-radius: var(--r-s); flex: none; }
+      .x-search { width: 100%; box-sizing: border-box; min-height: 52px; padding: 12px 16px; border-radius: var(--r-m); border: 1px solid var(--stroke-primary); background: var(--fill-tertiary); color: var(--text-primary); font: var(--weight-regular) var(--size-prose)/var(--lh) var(--sans); }
+      .x-search::placeholder { color: var(--text-secondary); }
+      .x-search:focus { outline: 2px solid var(--fill-primary); outline-offset: 1px; }
+      .x-tags { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); }
+      .x-tags::-webkit-scrollbar { display: none; }
+      .x-tag { flex: none; min-height: var(--tap); padding: 0 16px; border-radius: var(--r-pill); border: 1px solid var(--stroke-primary); background: var(--fill-primary-on); color: var(--text-primary); font: var(--type-label); cursor: pointer; }
+      .x-tag[aria-pressed="true"] { background: var(--x-accent); color: var(--x-on-accent); border-color: transparent; }
+      .x-brand__name { display: grid; gap: 0; }
+      .x-brand__sub { margin: 0; font: var(--type-small); color: var(--text-secondary); }
+      body.x-login-screen .x-brandbar { display: flex; }
+
+      /* List */
+      .x-group { display: grid; gap: 10px; }
+      .x-group h2 { margin: 8px 0 0; font: var(--type-label); color: var(--text-secondary); }
+      .x-list { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
+      .x-card { display: flex; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 12px; border: 0; border-radius: var(--r-m); background: var(--x-card); box-shadow: var(--x-shadow); color: var(--text-primary); font: var(--type-body); cursor: pointer; }
+      .x-card__thumb { flex: none; width: 84px; height: 84px; border-radius: var(--r-s); overflow: hidden; background: var(--x-placeholder); display: flex; align-items: center; justify-content: center; font-size: 36px; line-height: 1; }
+      .x-card__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .x-card__text { display: grid; gap: 6px; min-width: 0; flex: 1; }
+      .x-tagpill { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: var(--r-pill); background: var(--x-sage-bg); color: var(--x-sage-ink); font: var(--type-tag); }
+      .x-card:hover { box-shadow: inset 0 0 0 100px var(--hover-wash); }
+      .x-card__title { display: flex; justify-content: space-between; gap: 12px; font: var(--type-heading); }
+      .x-card__sub, .x-card__tags { color: var(--text-secondary); font: var(--type-small); }
+      .x-card__row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .x-star { color: var(--x-accent-soft); }
+      .x-empty { padding: 24px 16px; border-radius: var(--r-m); border: 1px dashed var(--stroke-primary); color: var(--text-secondary); text-align: center; }
+      .x-card:hover { box-shadow: var(--x-shadow), inset 0 0 0 100px var(--hover-wash); }
+
+      /* Floating add */
+      .x-fab { position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); width: min(420px, calc(100% - 2 * var(--gutter))); display: grid; gap: 8px; justify-items: center; padding: 12px; border-radius: var(--r-l); background: var(--mat-agent); -webkit-backdrop-filter: var(--hark-blur); backdrop-filter: var(--hark-blur); box-shadow: var(--hark-shadow); box-sizing: border-box; }
+      .x-primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 56px; padding: 0 20px; border: 0; border-radius: var(--r-pill); background: var(--x-accent); color: var(--x-on-accent); font: var(--type-body-strong); font-size: var(--size-prose); cursor: pointer; transition: box-shadow var(--dur-quick) ease, transform var(--dur-quick) ease; }
+      .x-primary:hover { box-shadow: inset 0 0 0 100px #ffffff1f; }
+      #fav-btn[aria-pressed="true"] { background: var(--x-accent); color: var(--x-on-accent); border-color: transparent; }
+
+      /* Nyt billede-skærm */
+      .x-pick { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 180px; padding: 24px; border-radius: var(--r-l); border: 2px dashed color-mix(in srgb, var(--x-accent-soft) 55%, transparent); background: var(--x-card); box-shadow: var(--x-shadow); color: var(--text-primary); font: var(--type-heading); text-align: center; cursor: pointer; }
+      .x-pick small { font: var(--type-small); color: var(--text-secondary); }
+      .x-pick input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+      .x-pick:focus-within { outline: 2px solid var(--x-accent); outline-offset: 2px; }
+      .x-pick:hover { box-shadow: var(--x-shadow), inset 0 0 0 100px var(--hover-wash); }
+
+      /* Stort billede øverst i opskriften */
+      .x-hero { margin: 0; position: relative; border-radius: var(--r-l); overflow: hidden; background: var(--x-placeholder); box-shadow: var(--x-shadow); aspect-ratio: 4 / 3; max-height: 52vh; width: 100%; display: flex; align-items: center; justify-content: center; font-size: 72px; line-height: 1; }
+      .x-hero img { display: block; width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+      .x-hero button { all: unset; display: block; width: 100%; height: 100%; cursor: zoom-in; }
+      .x-hero button:focus-visible { outline: 2px solid var(--x-accent); outline-offset: -4px; }
+      .x-primary:active { transform: scale(0.98); }
+      .x-primary:disabled { opacity: 0.6; cursor: default; }
+
+      /* Brand row, login, banner */
+      .x-brandbar { display: flex; align-items: center; gap: 12px; padding-top: 12px; }
+      .x-brandbar h1 { margin: 0; font: var(--type-title); font-weight: var(--weight-medium); }
+      .x-logout { margin-left: auto; min-height: var(--tap); padding: 0 6px; border: 0; background: none; color: var(--text-secondary); font: var(--type-small); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+      body.x-in-recipe .x-brandbar { display: none; }
+      .x-banner { margin: 0; display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: var(--r-m); background: var(--fill-tertiary); font: var(--type-label); }
+      .x-banner::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--fill-system-orange); }
+      .x-banner.is-error::before { background: var(--fill-system-red); }
+      .x-login { display: grid; gap: 16px; padding: 20px; border-radius: var(--r-l); background: var(--x-card); box-shadow: var(--x-shadow); }
+      .x-login p { margin: 0; }
+      .x-lead { font: var(--type-body); color: var(--text-secondary); }
+
+      /* Forms */
+      .x-form { display: grid; gap: 18px; }
+      .x-field { display: grid; gap: 6px; }
+      .x-field > span, .x-field > legend { font: var(--type-label); padding: 0; }
+      .x-field small { font: var(--type-small); color: var(--text-secondary); }
+      fieldset.x-field { border: 0; margin: 0; padding: 0; min-width: 0; }
+      .x-input { width: 100%; box-sizing: border-box; min-height: 52px; padding: 12px 16px; border-radius: var(--r-m); border: 1px solid var(--stroke-primary); background: var(--fill-primary-on); color: var(--text-primary); font: var(--weight-regular) var(--size-prose)/var(--lh) var(--sans); }
+      textarea.x-input { min-height: 140px; resize: vertical; line-height: 1.5; }
+      .x-input::placeholder { color: var(--text-secondary); }
+      .x-input:focus { outline: 2px solid var(--fill-primary); outline-offset: 1px; }
+      .x-msg { margin: 0; font: var(--type-label); min-height: 1.3em; }
+      .x-msg.is-error { color: var(--text-primary); display: flex; gap: 8px; align-items: baseline; }
+      .x-msg.is-error::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--fill-system-red); transform: translateY(-1px); }
+      .x-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+      .x-wide { width: 100%; min-height: 52px; font-size: var(--size-prose); }
+      .x-ftitle { margin: 0; font: var(--type-title); font-weight: var(--weight-medium); }
+      .x-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+      .x-thumbs:empty { display: none; }
+      .x-thumb { position: relative; margin: 0; }
+      .x-thumb img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--r-s); background: var(--fill-tertiary); }
+      .x-thumb button { position: absolute; top: 4px; right: 4px; width: var(--tap); height: var(--tap); border: 0; border-radius: 50%; background: var(--fill-primary); color: var(--text-primary-on); font: var(--type-label); cursor: pointer; }
+      .x-file { position: relative; display: flex; align-items: center; justify-content: center; }
+      .x-file input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+      .x-file:focus-within { outline: 2px solid var(--fill-primary); outline-offset: 2px; }
+      .x-confirm { display: grid; gap: 10px; padding: 14px; border-radius: var(--r-m); border: 1px solid var(--fill-system-red); }
+      .x-confirm p { margin: 0; font: var(--type-body-strong); }
+      .x-danger { color: var(--text-primary); border-color: var(--fill-system-red) !important; }
+
+      /* Recipe view */
+      .x-back { justify-self: start; min-height: var(--tap); padding: 0 14px 0 10px; border-radius: var(--r-pill); border: 1px solid var(--stroke-primary); background: var(--fill-primary-on); color: var(--text-primary); font: var(--type-label); cursor: pointer; }
+      .x-rhead { display: grid; gap: 6px; }
+      .x-rhead h1 { margin: 0; font: var(--type-title); font-weight: var(--weight-medium); }
+      .x-rhead .x-sub { margin: 0; font: var(--type-lede); font-weight: var(--weight-regular); color: var(--text-secondary); }
+      .x-tools { display: grid; gap: 12px; padding: 14px; border-radius: var(--r-m); background: var(--fill-tertiary); }
+      .x-tools__row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .x-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-pill); background: var(--fill-primary-on); border: 1px solid var(--stroke-primary); }
+      .x-seg button { min-width: var(--tap); min-height: 40px; padding: 0 10px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text-primary); font: var(--type-label); cursor: pointer; }
+      .x-seg button[aria-pressed="true"] { background: var(--fill-primary); color: var(--text-primary-on); }
+      .x-tool { min-height: var(--tap); padding: 0 14px; border-radius: var(--r-pill); border: 1px solid var(--stroke-primary); background: var(--fill-primary-on); color: var(--text-primary); font: var(--type-label); cursor: pointer; }
+      .x-tool[aria-pressed="true"] { background: var(--fill-primary); color: var(--text-primary-on); border-color: transparent; }
+      .x-persons { font: var(--type-label); }
+
+      .x-orig { margin: 0; display: grid; gap: 8px; }
+      .x-orig__scroll { overflow: auto; max-height: 80vh; border-radius: var(--r-m); background: var(--fill-tertiary); touch-action: pan-x pan-y pinch-zoom; }
+      .x-orig__scroll img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+      .x-orig.is-zoomed .x-orig__scroll img { width: 220%; max-width: none; cursor: zoom-out; }
+
+      .x-legend { margin: 0; font: var(--type-small); color: var(--text-secondary); }
+      mark.x-unsure { background: rgb(255 214 64 / 0.45); color: inherit; padding: 0 3px; border-radius: 4px; }
+      mark.x-unsure sup { font-size: 0.6em; margin-left: 1px; font-family: var(--sans); font-weight: var(--weight-bold); }
+
+      /* The sheet: paper for handwritten, white card for printed */
+      .x-sheet { border-radius: var(--r-m); padding: 20px 20px 24px; display: grid; gap: 4px; }
+      .x-sheet h2 { margin: 12px 0 2px; }
+      .x-sheet ul, .x-sheet ol { margin: 0; padding-left: 1.4em; }
+      .x-sheet p { margin: 0; }
+      .x-print { background: light-dark(#ffffff, var(--fill-tertiary)); border: 1px solid var(--stroke-primary); font: var(--weight-regular) var(--size-prose)/1.55 var(--sans); }
+      .x-print h2 { font: var(--type-heading); }
+      .x-print h3 { margin: 10px 0 2px; font: var(--type-label); color: var(--text-secondary); }
+      .x-print li + li { margin-top: 6px; }
+      .x-paper { --x-ink: #1c2f6b; --x-line: 34px; color: var(--x-ink); background-color: #fbf4e1; background-image: linear-gradient(to bottom, transparent calc(var(--x-line) - 1px), rgb(28 47 107 / 0.1) calc(var(--x-line) - 1px)); background-size: 100% var(--x-line); background-position: 0 14px; font-family: "Patrick Hand", "Caveat", cursive; font-size: 22px; line-height: var(--x-line); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), var(--hark-shadow); }
+      .x-paper h2 { font: inherit; font-size: 26px; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+      .x-paper h3 { margin: 0; font: inherit; font-size: 22px; opacity: 0.8; }
+      .x-paper .x-note, .x-paper .x-none { opacity: 0.75; }
+      .x-print .x-note, .x-print .x-none { color: var(--text-secondary); }
+      .x-credit { font: var(--type-small); color: var(--text-secondary); margin: 0; }
+      .x-fav { margin: 0; font: var(--type-small); color: var(--text-secondary); }
+      .x-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+      /* Kitchen mode */
+      body.x-kitchen .x-sheet { font-size: 30px; --x-line: 46px; line-height: 1.5; padding: 24px; }
+      body.x-kitchen .x-print { line-height: 1.45; }
+      body.x-kitchen .x-paper { line-height: var(--x-line); }
+      body.x-kitchen .x-sheet h2 { font-size: 34px; }
+      body.x-kitchen .x-sheet ol { list-style: none; padding: 0; display: grid; gap: 14px; counter-reset: x-step; }
+      body.x-kitchen .x-sheet ol > li { counter-increment: x-step; padding: 16px 18px; border-radius: var(--r-m); border: 2px solid currentColor; border-color: color-mix(in srgb, currentColor 25%, transparent); margin: 0; }
+      body.x-kitchen .x-sheet ol > li::before { content: counter(x-step) "."; display: block; font-size: 0.7em; opacity: 0.7; }
+      body.x-kitchen .x-sheet ol.x-plain > li::before { content: none; }
+      .x-wake { margin: 0; font: var(--type-small); color: var(--text-secondary); }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="top">
+      <main class="main">
+        <div class="x-brandbar x-brand">
+          <img src="upskrift-logo.png" alt="UpSkrift logo" width="56" height="56" />
+          <div class="x-brand__name">
+            <h1>UpSkrift</h1>
+            <p class="x-brand__sub">Familiens køkken</p>
+          </div>
+          <button type="button" class="x-logout" id="logout" hidden>Log ud</button>
+        </div>
+        <p class="x-banner" id="banner" role="status" hidden></p>
+
+        <!-- LOG IND -->
+        <div id="login-view" class="main" hidden>
+          <form class="x-login x-form" id="login-form" novalidate>
+            <p class="x-lead">Kun Frei og Maja har adgang.</p>
+            <label class="x-field"><span>E-mail</span>
+              <input id="email" class="x-input" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" />
+            </label>
+            <label class="x-field"><span>Adgangskode</span>
+              <input id="pw" class="x-input" type="password" autocomplete="current-password" />
+            </label>
+            <p class="x-msg" id="login-msg" role="status"></p>
+            <button type="submit" class="x-primary" id="login-btn">Log ind</button>
+            <button type="button" class="x-tool x-wide" id="signup-btn">Opret bruger</button>
+            <p class="fineprint">Første gang: skriv din e-mail, vælg en adgangskode (mindst 6 tegn) og tryk «Opret bruger».</p>
+          </form>
+        </div>
+
+        <!-- INGEN ADGANG -->
+        <div id="noaccess-view" class="main" hidden>
+          <div class="x-login">
+            <p class="x-ftitle">Denne e-mail har ikke adgang.</p>
+            <p class="x-lead" id="noaccess-email"></p>
+            <p class="x-lead">Kun Frei og Maja har adgang.</p>
+            <button type="button" class="x-primary" id="noaccess-logout">Log ud</button>
+          </div>
+        </div>
+
+        <!-- LISTE -->
+        <div id="list-view" class="main" hidden>
+          <div class="x-top">
+            <input id="search" class="x-search" type="search" autocomplete="off" aria-label="Søg i opskrifter" placeholder="Søg i titel eller ingredienser, fx kylling kokosmælk" />
+            <div class="x-tags" id="tags" role="toolbar" aria-label="Filtrér efter type"></div>
+          </div>
+          <div id="results" class="main"></div>
+          <div class="aside">
+            <h3>Sådan lægger du en opskrift ind</h3>
+            <p class="fineprint">Tryk + Ny opskrift og tag et billede. Titel, kategori og resten kan du tilføje senere med «Ret».</p>
+          </div>
+        </div>
+
+        <!-- OPSKRIFT -->
+        <div id="recipe-view" class="main" hidden>
+          <button class="x-back" id="back" type="button">‹ Tilbage</button>
+          <figure class="x-hero" id="rhero"></figure>
+          <div class="x-rhead" id="rhead"></div>
+          <div class="x-actions" id="ractions">
+            <button type="button" class="x-tool" id="fav-btn" aria-pressed="false">♡ Favorit</button>
+            <button type="button" class="x-tool" id="made-btn">Lavet i dag</button>
+            <button type="button" class="x-tool" id="edit-btn">Ret</button>
+            <button type="button" class="x-tool x-danger" id="del-btn">Slet</button>
+          </div>
+          <div class="x-confirm" id="del-confirm" hidden>
+            <p>Er du sikker? Opskriften bliver slettet for jer begge.</p>
+            <div class="x-actions">
+              <button type="button" class="x-tool x-danger" id="del-yes">Ja, slet</button>
+              <button type="button" class="x-tool" id="del-no">Nej</button>
+            </div>
+          </div>
+          <div class="x-tools">
+            <div class="x-tools__row" id="portion-row">
+              <div class="x-seg" id="portions" role="group" aria-label="Portioner">
+                <button type="button" data-f="0.5">½×</button>
+                <button type="button" data-f="1">1×</button>
+                <button type="button" data-f="2">2×</button>
+                <button type="button" data-f="3">3×</button>
+              </div>
+              <div class="x-seg" role="group" aria-label="Mere eller mindre">
+                <button type="button" id="minus" aria-label="Mindre">−</button>
+                <button type="button" id="plus" aria-label="Mere">+</button>
+              </div>
+              <span class="x-persons" id="persons"></span>
+            </div>
+            <div class="x-tools__row">
+              <button type="button" class="x-tool" id="kitchen" aria-pressed="false">Køkkentilstand</button>
+              <button type="button" class="x-tool" id="orig-btn" aria-pressed="false">Se originalen</button>
+            </div>
+            <p class="x-wake" id="wake-note" hidden>Skærmen kan slukke i denne visning.</p>
+          </div>
+
+          <figure class="x-orig" id="orig" hidden>
+            <div class="x-orig__scroll" id="orig-imgs"></div>
+            <figcaption class="fineprint">Tryk på billedet for at zoome. Knib med to fingre for at zoome mere.</figcaption>
+          </figure>
+
+          <p class="x-legend" id="legend" hidden><mark class="x-unsure">Gul<sup>?</sup></mark> = jeg er usikker på, hvad der står</p>
+          <article class="x-sheet" id="sheet"></article>
+
+        </div>
+
+        <!-- NY OPSKRIFT: KUN BILLEDE -->
+        <div id="new-view" class="main" hidden>
+          <button class="x-back" id="new-back" type="button">‹ Annuller</button>
+          <h1 class="x-ftitle">Ny opskrift</h1>
+          <label class="x-pick">📷 Tag eller vælg billede
+            <small>Du kan vælge flere billeder</small>
+            <input id="n-file" type="file" accept="image/*" multiple />
+          </label>
+          <div class="x-thumbs" id="n-photos"></div>
+          <p class="x-msg" id="n-msg" role="status"></p>
+          <button type="button" class="x-primary" id="n-save">Gem</button>
+          <button type="button" class="x-tool x-wide" id="n-cancel">Annuller</button>
+        </div>
+
+        <!-- FORMULAR -->
+        <div id="form-view" class="main" hidden>
+          <button class="x-back" id="form-cancel" type="button">‹ Annuller</button>
+          <h1 class="x-ftitle" id="form-title">Ny opskrift</h1>
+          <form class="x-form" id="rform" novalidate>
+            <label class="x-field"><span>Titel</span>
+              <input id="f-title" class="x-input" type="text" autocomplete="off" placeholder="Fx Mormors boller" />
+            </label>
+            <fieldset class="x-field">
+              <legend>Billeder</legend>
+              <div class="x-thumbs" id="f-photos"></div>
+              <label class="x-tool x-wide x-file">📷 Tilføj billede
+                <input id="f-file" type="file" accept="image/*" multiple />
+              </label>
+              <small>Et billede af en papiropskrift er nok. Resten kan vente.</small>
+            </fieldset>
+            <fieldset class="x-field">
+              <legend>Kategori</legend>
+              <div class="x-wrap" id="f-tags"></div>
+              <input id="f-newtag" class="x-input" type="text" autocomplete="off" placeholder="Eller skriv en ny, fx Kage" />
+            </fieldset>
+            <label class="x-field"><span>Antal personer</span>
+              <input id="f-servings" class="x-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Fx 4" />
+            </label>
+            <label class="x-field"><span>Ingredienser <small>én pr. linje</small></span>
+              <textarea id="f-ingredients" class="x-input" rows="6" placeholder="200 g mel&#10;2 æg&#10;1 dl mælk"></textarea>
+            </label>
+            <label class="x-field"><span>Fremgangsmåde <small>ét trin pr. linje</small></span>
+              <textarea id="f-steps" class="x-input" rows="6" placeholder="Pisk æg og mælk sammen.&#10;Vend melet i."></textarea>
+            </label>
+            <label class="x-field"><span>Noter</span>
+              <textarea id="f-notes" class="x-input" rows="3"></textarea>
+            </label>
+            <p class="fineprint">Tip: Skriv # foran en linje for at lave en overskrift, fx «# Saucen». Skriv [[ord]] for at markere et ord, du er usikker på.</p>
+            <p class="x-msg" id="f-msg" role="status"></p>
+            <button type="submit" class="x-primary" id="f-save">Gem opskrift</button>
+          </form>
+        </div>
+      </main>
+
+      <footer class="foot">
+        <p>UpSkrift · Backup af originalfotos ligger i Google Drive-mappen 'Opskrifter (backup)'.<br /><strong id="count"></strong></p>
+        <a class="badge" href="https://hark.com/" target="_blank" rel="noopener"><span class="hark-mark"></span><span>built by hark</span></a>
+      </footer>
+    </div>
+
+    <div class="x-fab" id="fab" hidden>
+      <button type="button" class="x-primary" id="new-btn">+ Ny opskrift</button>
+    </div>
+
+    <!-- Originalfotos til de fire første opskrifter (lægges op ved første login) -->
+    <div hidden aria-hidden="true">
+      <img id="seed-frikadeller" src="frikadeller-ark.webp" alt="" />
+      <img id="seed-kulmule" src="kulmule.webp" alt="" />
+      <img id="seed-laks" src="laks-med-pasta.webp" alt="" />
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
+    <script>
+      // ---------- forbindelse ----------
+      var SB_URL = "https://yllrcsdzvyztjdxosiec.supabase.co";
+      var SB_KEY = "sb_publishable_ETlKiLsJFEjAmCfZNjKxFw_iEJLMsj_";
+      var PHOTO_BASE = SB_URL + "/storage/v1/object/public/photos/";
+      var ALLOWED = ["freibindslev@gmail.com", "mibsen1@hotmail.com"];
+      var BASE_TAGS = ["Hovedret", "Vegetar", "Fisk", "Pasta", "Frikadeller", "Hurtig"];
+
+      // localStorage kan kaste fejl i en sandkasse – så bruger vi hukommelsen i stedet.
+      var memStore = {};
+      function getLS() {
+        try { var ls = window.localStorage; return ls || null; } catch (e) { return null; }
+      }
+      var safeStorage = {
+        getItem: function (k) {
+          try { var ls = getLS(); if (ls) { var v = ls.getItem(k); if (v !== null && v !== undefined) return v; } } catch (e) {}
+          return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null;
+        },
+        setItem: function (k, v) {
+          memStore[k] = String(v);
+          try { var ls = getLS(); if (ls) ls.setItem(k, v); } catch (e) {}
+        },
+        removeItem: function (k) {
+          delete memStore[k];
+          try { var ls = getLS(); if (ls) ls.removeItem(k); } catch (e) {}
+        }
+      };
+      function withTimeout(promise, ms) {
+        return new Promise(function (resolve, reject) {
+          var t = setTimeout(function () { reject(new Error("timeout")); }, ms);
+          Promise.resolve(promise).then(
+            function (v) { clearTimeout(t); resolve(v); },
+            function (e) { clearTimeout(t); reject(e); }
+          );
+        });
+      }
+      var sb = null;
+      try {
+        sb = window.supabase.createClient(SB_URL, SB_KEY, {
+          auth: {
+            storage: safeStorage,
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false
+          }
+        });
+      } catch (e) { sb = null; }
+
+      // ---------- de fire første opskrifter ----------
+      // [[ord]] = usikker læsning (vises med gul markering og "?").
+      // Linjer der starter med # er overskrifter. Noter kan have linjerne
+      // "Undertitel:", "Tid:", "Kilde:" og "Stil: printet".
+      var SEED = [
+        {
+          title: "Vegetarfrikadeller",
+          category: "Hovedret, Vegetar, Frikadeller",
+          servings: "",
+          photo: "seed-frikadeller",
+          ingredients: [
+            "175 g røgeost",
+            "200 g hytteost",
+            "3 [[æg]]",
+            "1 løg – rives",
+            "1 fed hvidløg – knuses",
+            "1½ dl rasp",
+            "1½ dl havregryn",
+            "salt, peber",
+            "[[basilikum]] + grøntsagsbouillon"
+          ],
+          steps: ["Farsen hviler 1 time."],
+          notes: ["På samme ark som Grøntsagsfrikadeller."]
+        },
+        {
+          title: "Grøntsagsfrikadeller",
+          category: "Hovedret, Vegetar, Frikadeller",
+          servings: "",
+          photo: "seed-frikadeller",
+          ingredients: [
+            "375 g kartofler i skiver",
+            "175 g gulerødder – [[i skiver]]",
+            "100 g selleri",
+            "100 g ærter",
+            "2 æg",
+            "115 g rasp"
+          ],
+          steps: [],
+          notes: ["På samme ark som Vegetarfrikadeller."]
+        },
+        {
+          title: "Skindstegt kulmule",
+          category: "Hovedret, Fisk, Pasta",
+          servings: "4",
+          photo: "seed-kulmule",
+          ingredients: [
+            "# I kassen",
+            "600 g kulmulefilet med skind",
+            "2 stk peberfrugt (rød)",
+            "10 g bredbladet persille",
+            "1 stk løg",
+            "4 fed hvidløg",
+            "2 pakker Fettuccine con sugo al Basilico",
+            "# Du skal selv have",
+            "fintrevet parmesanost",
+            "olivenolie",
+            "smør til stegning"
+          ],
+          steps: [
+                "# Saucen",
+                "Peberfrugten skylles og skæres i strimler på omkring ½ cm tykkelse.",
+                "Løget og hvidløget hakkes fint.",
+                "Persillen skylles og hakkes fint (gem et par fine blade til pynt).",
+                "Steg peberfrugterne i lidt olie på en meget hed pande: den må gerne få sorte \"blister\". Når peberfrugten er stegt, skrues der ned for panden, og der tilsættes lidt mere olie.",
+                "Tilsæt løg og hvidløg og steg dem til de er gyldne.",
+                "Så hældes tomatsugoen ned i panden til grøntsagerne sammen med omkring lige så meget vand som sugo (brug posen fra sugoen til at måle vandet op med).",
+                "Lad saucen simre stille nogle minutter og smag til med salt og rigeligt friskkværnet peber, samt evt. et lille nip sukker.",
+                "Hæld pastaen ned i saucen og tilbered den efter anvisningen på pastapakken.",
+                "# Fisk",
+                "Skær fisken i portionsstykker og rids dem på skindsiden med en skarp kniv.",
+                "Krydr med salt og peber og steg dem et par minutter på skindsiden i lidt olie på en varm pande.",
+                "Skru ned for blusset sammen med et par klumper koldt smør. Lad fisken stege videre (stadig på skindsiden), indtil kødet bliver hvidt og fast.",
+                "# Anretning",
+                "Vend persillen ned i pastaen og servér den i dybe tallerkner med fisken ovenpå. Dryp god olivenolie over retten og evt. et par riv parmesan. Pynt med persille."
+          ],
+          notes: [
+            "Undertitel: med grillet peber-tomat pappardelle",
+            "Tid: 30 min",
+            "Kilde: Genfood · opskrift af kok Christina Damgaard-Sylvest",
+            "Stil: printet"
+          ]
+        },
+        {
+          title: "Laks med pasta",
+          category: "Hovedret, Fisk, Pasta, Hurtig",
+          servings: "",
+          photo: "seed-laks",
+          ingredients: ["Laks", "Vand", "Frisk pasta", "Fløde", "Citron", "Hvidløg", "Capers", "Salt", "Peber", "Persille", "Tabasco"],
+          steps: [
+            "Laksen koges i lidt vand.",
+            "Fløde, citron, hvidløg og capers blandes.",
+            "Pastaen koges.",
+            "Når pastaen er kogt, hældes blandingen over samt laks i små stykker.",
+            "Det simrer, men må ikke koge.",
+            "Før servering drysses persille."
+          ],
+          notes: ["Ingen mængder på sedlen."]
+        }
+      ];
+
+      // ---------- hjælpere ----------
+      var $ = function (id) { return document.getElementById(id); };
+      function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+      function marks(s) { return esc(s).replace(/\[\[(.+?)\]\]/g, '<mark class="x-unsure" title="Usikker læsning">$1<sup>?</sup></mark>'); }
+      function norm(s) { return String(s).replace(/\[\[|\]\]/g, "").toLocaleLowerCase("da"); }
+      // Tekst (én pr. linje, # = overskrift) -> grupper { title, items }
+      function groups(text) {
+        var out = [], cur = null;
+        String(text || "").split("\n").forEach(function (l) {
+          l = l.trim();
+          if (!l) return;
+          var h = l.match(/^#+\s*(.*)$/);
+          if (h) { cur = { title: h[1], items: [] }; out.push(cur); return; }
+          if (!cur) { cur = { title: "", items: [] }; out.push(cur); }
+          cur.items.push(l.replace(/^[-•*]\s+/, ""));
+        });
+        return out;
+      }
+      function flat(text) { return groups(text).reduce(function (a, g) { return a.concat(g.title ? [g.title] : [], g.items); }, []); }
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+      function today() { var d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+      function uuid() {
+        try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+        var b = crypto.getRandomValues(new Uint8Array(16));
+        b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+        var h = Array.prototype.map.call(b, function (x) { return (x + 256).toString(16).slice(1); }).join("");
+        return h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" + h.slice(16, 20) + "-" + h.slice(20);
+      }
+      function errText(e) { return (e && (e.message || e.error_description || e.msg)) || String(e || ""); }
+      function isNetErr(e) {
+        if (typeof navigator !== "undefined" && navigator.onLine === false) return true;
+        return /failed to fetch|networkerror|network request|load failed|fetch/i.test(errText(e));
+      }
+
+      // Database-række -> opskrift til visning
+      function fromRow(row) {
+        var meta = {}, noteLines = [];
+        String(row.notes || "").split("\n").forEach(function (l) {
+          var m = l.match(/^\s*(Undertitel|Tid|Kilde|Stil)\s*:\s*(.*)$/i);
+          if (m) meta[m[1].toLowerCase()] = m[2].trim();
+          else noteLines.push(l);
+        });
+        return {
+          id: row.id,
+          title: row.title || "",
+          subtitle: meta.undertitel || "",
+          time: meta.tid || "",
+          credit: meta.kilde || "",
+          printed: /print/i.test(meta.stil || ""),
+          tags: String(row.category || "").split(",").map(function (t) { return t.trim(); }).filter(Boolean),
+          persons: parseFloat(String(row.servings || "").replace(",", ".")) || null,
+          favorite: !!row.favorite,
+          lastMade: row.last_made || "",
+          ingredients: row.ingredients || "",
+          steps: row.steps || "",
+          note: noteLines.join("\n").trim(),
+          photos: row.photo_urls || [],
+          row: row
+        };
+      }
+
+      // ---------- mængder ----------
+      var FR = { "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3 };
+      var FR_OUT = [[0, ""], [0.25, "¼"], [1 / 3, "⅓"], [0.5, "½"], [2 / 3, "⅔"], [0.75, "¾"], [1, ""]];
+      function parseAmount(s) {
+        var m = s.match(/^(\d+)\s+(\d+)\/(\d+)(?=\s|$)/);
+        if (m) return { v: +m[1] + m[2] / m[3], len: m[0].length };
+        m = s.match(/^(\d+)\/(\d+)(?=\s|$)/);
+        if (m) return { v: m[1] / m[2], len: m[0].length };
+        m = s.match(/^(\d+(?:[.,]\d+)?)?([½¼¾⅓⅔])?(?=\s|$)/);
+        if (m && (m[1] || m[2])) return { v: (m[1] ? parseFloat(m[1].replace(",", ".")) : 0) + (m[2] ? FR[m[2]] : 0), len: m[0].length };
+        return null;
+      }
+      function fmt(v) {
+        if (v >= 20) return String(Math.round(v));
+        var whole = Math.floor(v), rest = v - whole;
+        for (var i = 0; i < FR_OUT.length; i++) {
+          if (Math.abs(rest - FR_OUT[i][0]) < 0.04) {
+            var w = whole + (FR_OUT[i][0] === 1 ? 1 : 0);
+            var f = FR_OUT[i][1];
+            return (w ? String(w) : f ? "" : "0") + f;
+          }
+        }
+        return (Math.round(v * 10) / 10).toString().replace(".", ",");
+      }
+      function scaleLine(s, f) {
+        var a = parseAmount(s);
+        if (!a || f === 1) return marks(s);
+        return "<b>" + fmt(a.v * f) + "</b>" + marks(s.slice(a.len));
+      }
+      function hasAmounts(r) { return groups(r.ingredients).some(function (g) { return g.scale !== false && g.items.some(function (i) { return parseAmount(i); }); }); }
+
+      // ---------- tilstand (kun i hukommelsen) ----------
+      var state = { q: "", tag: "Alle", id: null, factor: 1, kitchen: false };
+      var wakeLock = null;
+      var rows = [];        // rå rækker fra databasen
+      var RECIPES = [];     // til visning
+      var currentEmail;     // undefined = ikke tjekket endnu
+      var CACHE_KEY = "upskrift-cache-v1";
+
+      function setRows(list) {
+        rows = list.slice().sort(function (a, b) { return String(a.title).localeCompare(String(b.title), "da"); });
+        RECIPES = rows.map(fromRow);
+        try { safeStorage.setItem(CACHE_KEY, JSON.stringify(rows)); } catch (e) {}
+      }
+      function allTags() {
+        var t = BASE_TAGS.slice();
+        RECIPES.forEach(function (r) { r.tags.forEach(function (x) { if (t.indexOf(x) < 0) t.push(x); }); });
+        return t;
+      }
+      function banner(text, isError) {
+        var b = $("banner");
+        b.hidden = !text;
+        b.textContent = text || "";
+        b.classList.toggle("is-error", !!isError);
+      }
+      function offlineBanner() { banner("Ingen forbindelse. Du ser de opskrifter, der sidst blev hentet. Ændringer kan ikke gemmes lige nu."); }
+
+      // ---------- liste ----------
+      function matches(r) {
+        if (state.tag === "Favoritter" && !r.favorite) return false;
+        if (state.tag !== "Alle" && state.tag !== "Favoritter" && r.tags.indexOf(state.tag) < 0) return false;
+        var words = norm(state.q).split(/\s+/).filter(Boolean);
+        if (!words.length) return true;
+        var hay = norm([r.title, r.subtitle, r.tags.join(" "), flat(r.ingredients).join(" "), flat(r.steps).join(" "), r.note].join(" "));
+        return words.every(function (w) { return hay.indexOf(w) >= 0; });
+      }
+      function dateDa(d) {
+        var m = ["jan.", "feb.", "mar.", "apr.", "maj", "jun.", "jul.", "aug.", "sep.", "okt.", "nov.", "dec."];
+        var p = d.split("-");
+        return +p[2] + ". " + m[+p[1] - 1] + " " + p[0];
+      }
+      function card(r) {
+        return '<li><button type="button" class="x-card" data-id="' + esc(r.id) + '">' +
+          '<span class="x-card__thumb" aria-hidden="true">' + (r.photos.length ? '<img src="' + esc(r.photos[0]) + '" alt="" loading="lazy" />' : "🍲") + "</span>" +
+          '<span class="x-card__text">' +
+          '<span class="x-card__title"><span>' + esc(r.title) + "</span>" + (r.favorite ? '<span class="x-star" aria-label="Favorit">♥</span>' : "") + "</span>" +
+          (r.subtitle ? '<span class="x-card__sub">' + esc(r.subtitle) + "</span>" : "") +
+          '<span class="x-card__row">' + (r.printed ? '<span class="pill">Printet</span>' : "") +
+          (!r.ingredients.trim() && !r.steps.trim() && r.photos.length ? '<span class="pill">Kun billede</span>' : "") +
+          (r.time ? '<span class="pill">' + esc(r.time) + "</span>" : "") +
+          r.tags.map(function (t) { return '<span class="x-tagpill">' + esc(t) + "</span>"; }).join("") + "</span>" +
+          (r.lastMade ? '<span class="x-card__tags">Lavet senest ' + dateDa(r.lastMade) + "</span>" : "") +
+          "</span></button></li>";
+      }
+      function renderTags() {
+        $("tags").innerHTML = ["Alle", "Favoritter"].concat(allTags()).map(function (t) {
+          return '<button type="button" class="x-tag" data-tag="' + esc(t) + '" aria-pressed="' + (state.tag === t) + '">' + (t === "Favoritter" ? "♥ " : "") + esc(t) + "</button>";
+        }).join("");
+      }
+      function renderList() {
+        var hits = RECIPES.filter(matches);
+        var made = hits.filter(function (r) { return r.lastMade; }).sort(function (a, b) { return a.lastMade < b.lastMade ? 1 : -1; });
+        var rest = hits.filter(function (r) { return !r.lastMade; }).sort(function (a, b) { return a.title.localeCompare(b.title, "da"); });
+        var html = "";
+        if (made.length) html += '<section class="x-group"><h2>Lavet senest</h2><ul class="x-list">' + made.map(card).join("") + "</ul></section>";
+        if (rest.length) html += '<section class="x-group"><h2>' + (made.length ? "Alle andre" : hits.length + (hits.length === 1 ? " opskrift" : " opskrifter")) + '</h2><ul class="x-list">' + rest.map(card).join("") + "</ul></section>";
+        if (!hits.length) html = RECIPES.length ? '<p class="x-empty">Ingen opskrifter passer. Prøv et andet ord, eller tryk på «Alle».</p>' : '<p class="x-empty">Ingen opskrifter endnu. Tryk + Ny opskrift.</p>';
+        $("results").innerHTML = html;
+        $("count").textContent = RECIPES.length + (RECIPES.length === 1 ? " opskrift i alt" : " opskrifter i alt");
+      }
+      function renderAll() {
+        renderTags();
+        renderList();
+        if (state.id && !$("recipe-view").hidden) {
+          if (RECIPES.some(function (x) { return x.id === state.id; })) renderRecipe();
+          else closeRecipe();
+        }
+      }
+
+      // ---------- opskrift ----------
+      function renderRecipe() {
+        var r = RECIPES.filter(function (x) { return x.id === state.id; })[0];
+        if (!r) return;
+        var hand = !r.printed;
+        var pills = (r.printed ? '<span class="pill">Printet</span>' : "") +
+          (r.time ? '<span class="pill">' + esc(r.time) + "</span>" : "") +
+          r.tags.map(function (t) { return '<span class="x-tagpill">' + esc(t) + "</span>"; }).join("");
+        $("rhead").innerHTML =
+          "<h1>" + esc(r.title) + (r.favorite ? ' <span class="x-star" aria-label="Favorit">♥</span>' : "") + "</h1>" +
+          (r.subtitle ? '<p class="x-sub">' + esc(r.subtitle) + "</p>" : "") +
+          (pills ? '<p class="x-card__row">' + pills + "</p>" : "") +
+          (r.credit ? '<p class="x-credit">' + esc(r.credit) + "</p>" : "") +
+          (r.lastMade ? '<p class="x-credit">Lavet senest ' + dateDa(r.lastMade) + "</p>" : "");
+
+        // knapper
+        $("fav-btn").setAttribute("aria-pressed", r.favorite);
+        $("fav-btn").textContent = r.favorite ? "♥ Favorit" : "♡ Favorit";
+        $("made-btn").textContent = r.lastMade === today() ? "✓ Lavet i dag" : "Lavet i dag";
+
+        // portioner
+        var canScale = hasAmounts(r);
+        $("portion-row").hidden = !canScale;
+        Array.prototype.forEach.call($("portions").children, function (b) { b.setAttribute("aria-pressed", +b.dataset.f === state.factor); });
+        $("persons").textContent = r.persons ? "til " + fmt(r.persons * state.factor) + " personer" : (state.factor !== 1 ? fmt(state.factor) + "× mængden" : "");
+
+        // ark
+        var f = canScale ? state.factor : 1;
+        var ig = groups(r.ingredients), sg = groups(r.steps);
+        var photoOnly = !ig.length && !sg.length;
+        var html = "";
+        if (!photoOnly) {
+          html += "<h2>Ingredienser</h2>";
+          if (!ig.length) html += '<p class="x-none">Ingen ingredienser skrevet ind.</p>';
+          ig.forEach(function (g) {
+            if (g.title) html += "<h3>" + marks(g.title) + "</h3>";
+            html += "<ul>" + g.items.map(function (i) { return "<li>" + scaleLine(i, f) + "</li>"; }).join("") + "</ul>";
+          });
+          html += "<h2>Fremgangsmåde</h2>";
+          if (!sg.length) html += '<p class="x-none">Ingen fremgangsmåde på sedlen.</p>';
+          sg.forEach(function (g) {
+            if (g.title) html += "<h3>" + marks(g.title) + "</h3>";
+            var plain = g.items.length === 1 && g.title && sg.length > 1;
+            html += "<ol" + (plain ? ' class="x-plain" style="list-style:none;padding-left:0"' : "") + ">" + g.items.map(function (s) { return "<li>" + marks(s.replace(/^\d+[.)]\s+/, "")) + "</li>"; }).join("") + "</ol>";
+          });
+        }
+        if (r.note) html += '<p class="x-note">' + marks(r.note).replace(/\n/g, "<br />") + "</p>";
+        $("sheet").className = "x-sheet " + (hand ? "x-paper" : "x-print");
+        $("sheet").innerHTML = html;
+        $("sheet").hidden = !html;
+
+        var unsure = /\[\[/.test(r.ingredients + r.steps + r.note);
+        $("legend").hidden = !unsure;
+
+        // originalfotos
+        $("orig-btn").hidden = !r.photos.length;
+        if ($("orig-imgs").dataset.for !== r.id + "|" + r.photos.join("|")) {
+          $("orig-imgs").dataset.for = r.id + "|" + r.photos.join("|");
+          $("orig-imgs").innerHTML = r.photos.map(function (u, i) {
+            return '<img src="' + esc(u) + '" alt="Billede ' + (i + 1) + " af " + esc(r.title.replace(/\[\[|\]\]/g, "")) + '" />';
+          }).join("");
+        }
+        if (!r.photos.length) $("orig").hidden = true;
+        // Kun billede: vis billederne store (tryk for zoom) og intet andet
+        var onlyPhotos = photoOnly && r.photos.length;
+        if (onlyPhotos) {
+          state.autoOrig = false;
+          $("orig").hidden = false;
+          $("orig-btn").hidden = true;
+          $("orig-btn").setAttribute("aria-pressed", "true");
+          $("orig-btn").textContent = "Skjul originalen";
+        }
+        // stort billede øverst (eller en varm pladsholder)
+        $("rhero").hidden = !!onlyPhotos;
+        var heroKey = r.photos[0] || "none";
+        if ($("rhero").dataset.for !== heroKey) {
+          $("rhero").dataset.for = heroKey;
+          $("rhero").innerHTML = r.photos.length
+            ? '<button type="button" id="hero-btn" aria-label="Se originalen i stor størrelse"><img src="' + esc(r.photos[0]) + '" alt="" /></button>'
+            : '<span aria-hidden="true">🍲</span>';
+        }
+      }
+
+      function openRecipe(id) {
+        state.id = id;
+        state.factor = 1;
+        $("orig").hidden = true;
+        $("orig").classList.remove("is-zoomed");
+        $("orig-btn").setAttribute("aria-pressed", "false");
+        $("orig-btn").textContent = "Se originalen";
+        $("del-confirm").hidden = true;
+        state.autoOrig = true;
+        showView("recipe-view");
+        renderRecipe();
+      }
+      function closeRecipe() {
+        setKitchen(false);
+        state.id = null;
+        showView("list-view");
+      }
+      function showView(v) {
+        ["login-view", "noaccess-view", "list-view", "recipe-view", "form-view", "new-view"].forEach(function (id) { $(id).hidden = id !== v; });
+        $("fab").hidden = v !== "list-view";
+        $("logout").hidden = v !== "list-view";
+        document.body.classList.toggle("x-in-recipe", v !== "list-view");
+        document.body.classList.toggle("x-login-screen", v === "login-view" || v === "noaccess-view");
+        window.scrollTo(0, 0);
+      }
+
+      // ---------- log ind ----------
+      function loginMsg(text, isError) {
+        $("login-msg").textContent = text || "";
+        $("login-msg").classList.toggle("is-error", !!isError);
+      }
+      function authError(e) {
+        var m = errText(e);
+        if (isNetErr(e)) return "Ingen forbindelse. Tjek internettet og prøv igen.";
+        if (/invalid login|invalid credentials/i.test(m)) return "Forkert e-mail eller adgangskode.";
+        if (/already registered|already exists|already been registered/i.test(m)) return "Der findes allerede en bruger med den e-mail. Tryk «Log ind».";
+        if (/password/i.test(m)) return "Adgangskoden skal være mindst 6 tegn.";
+        if (/not confirmed/i.test(m)) return "E-mailen er ikke bekræftet endnu.";
+        if (/email/i.test(m) && /invalid|valid|format/i.test(m)) return "Skriv en rigtig e-mail.";
+        if (/rate|too many|seconds/i.test(m)) return "For mange forsøg. Vent et øjeblik, og prøv igen.";
+        if (/signup|sign up/i.test(m) && /disabled|not allowed/i.test(m)) return "Det er ikke muligt at oprette brugere lige nu.";
+        return "Noget gik galt. Prøv igen. (" + m + ")";
+      }
+      var authBusy = false;
+      async function doAuth(kind) {
+        if (authBusy) return;
+        loginMsg(kind === "up" ? "Opretter bruger..." : "Logger ind...");
+        var email = $("email").value.trim().toLowerCase(), pw = $("pw").value;
+        if (!email || !pw) { loginMsg("Skriv både e-mail og adgangskode.", true); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { loginMsg("Skriv en rigtig e-mail.", true); return; }
+        if (ALLOWED.indexOf(email) < 0) { loginMsg("Denne e-mail har ikke adgang.", true); return; }
+        if (kind === "up" && pw.length < 6) { loginMsg("Adgangskoden skal være mindst 6 tegn.", true); return; }
+        if (!sb) { loginMsg("Ingen forbindelse. Appen kunne ikke starte. Prøv igen senere.", true); return; }
+        authBusy = true;
+        $("login-btn").disabled = $("signup-btn").disabled = true;
+        loginMsg(kind === "up" ? "Opretter bruger..." : "Logger ind...");
+        try {
+          var r = kind === "up"
+            ? await withTimeout(sb.auth.signUp({ email: email, password: pw }), 15000)
+            : await withTimeout(sb.auth.signInWithPassword({ email: email, password: pw }), 15000);
+          if (r.error) throw r.error;
+          var session = r.data && r.data.session;
+          if (!session) {
+            var r2 = await withTimeout(sb.auth.signInWithPassword({ email: email, password: pw }), 15000);
+            if (r2.error) throw r2.error;
+            session = r2.data.session;
+          }
+          $("pw").value = "";
+          loginMsg("");
+          handleSession(session);
+        } catch (e) {
+          if (e && e.message === "timeout") loginMsg("Login svarede ikke. Tjek internettet, og prøv igen.", true);
+          else loginMsg(authError(e), true);
+        } finally {
+          authBusy = false;
+          $("login-btn").disabled = $("signup-btn").disabled = false;
+        }
+      }
+      async function logout() {
+        try { if (sb) await sb.auth.signOut(); } catch (e) {}
+        try { safeStorage.removeItem(CACHE_KEY); } catch (e) {}
+        rows = []; RECIPES = [];
+        handleSession(null);
+      }
+      function handleSession(session) {
+        var email = session && session.user ? String(session.user.email || "").toLowerCase() : null;
+        if (email === currentEmail) return;
+        currentEmail = email;
+        banner("");
+        if (!email) { setKitchen(false); state.id = null; showView("login-view"); return; }
+        if (ALLOWED.indexOf(email) < 0) {
+          $("noaccess-email").textContent = email;
+          showView("noaccess-view");
+          return;
+        }
+        showView("list-view");
+        setTimeout(function () { loadRecipes(); }, 0);
+      }
+
+      // ---------- data ----------
+      var loading = false;
+      async function loadRecipes() {
+        if (loading || !sb) return;
+        loading = true;
+        if (!RECIPES.length) {
+          try { var cached = JSON.parse(safeStorage.getItem(CACHE_KEY) || "[]"); if (cached.length) setRows(cached); } catch (e) {}
+        }
+        if (!RECIPES.length) $("results").innerHTML = '<p class="x-empty">Henter opskrifter...</p>';
+        else renderAll();
+        try {
+          var r = await sb.from("recipes").select("*").order("title", { ascending: true });
+          if (r.error) throw r.error;
+          var list = r.data || [];
+          if (!list.length) list = await seedRecipes();
+          setRows(list);
+          banner("");
+        } catch (e) {
+          console.error(e);
+          if (isNetErr(e)) offlineBanner();
+          else banner("Kunne ikke hente opskrifterne: " + errText(e), true);
+        } finally {
+          loading = false;
+        }
+        renderAll();
+      }
+
+      // Lav et billede mindre (maks 1600 px på den lange led, JPEG 0,8)
+      function loadImg(src) {
+        return new Promise(function (res, rej) {
+          var i = new Image();
+          i.onload = function () { res(i); };
+          i.onerror = function () { rej(new Error("Billedet kunne ikke læses.")); };
+          i.src = src;
+        });
+      }
+      async function shrink(src) {
+        var img = await loadImg(src);
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var s = Math.min(1, 1600 / Math.max(w, h));
+        var c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(w * s));
+        c.height = Math.max(1, Math.round(h * s));
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        return new Promise(function (res, rej) {
+          c.toBlob(function (b) { b ? res(b) : rej(new Error("Billedet kunne ikke gøres mindre.")); }, "image/jpeg", 0.8);
+        });
+      }
+      function photoPath(url) {
+        var p = String(url).split("/object/public/photos/")[1];
+        return p ? decodeURIComponent(p.split("?")[0]) : null;
+      }
+      function photoNum(url) {
+        var p = photoPath(url), m = p && p.match(/\/(\d+)\.jpg$/);
+        return m ? +m[1] : 0;
+      }
+      async function uploadPhoto(id, n, blob) {
+        var path = id + "/" + n + ".jpg";
+        var r = await sb.storage.from("photos").upload(path, blob, { contentType: "image/jpeg", upsert: true, cacheControl: "3600" });
+        if (r.error) throw r.error;
+        return PHOTO_BASE + path + "?v=" + Date.now();
+      }
+
+      // Første gang: læg de fire opskrifter ind med deres originalfotos
+      async function seedRecipes() {
+        banner("Lægger de fire første opskrifter ind...");
+        var out = [];
+        for (var i = 0; i < SEED.length; i++) {
+          var s = SEED[i], id = uuid();
+          var blob = await shrink($(s.photo).src);
+          var url = await uploadPhoto(id, 1, blob);
+          out.push({
+            id: id,
+            title: s.title,
+            category: s.category,
+            servings: s.servings,
+            ingredients: s.ingredients.join("\n"),
+            steps: s.steps.join("\n"),
+            notes: s.notes.join("\n"),
+            photo_urls: [url],
+            favorite: false,
+            last_made: null,
+            created_by: currentEmail
+          });
+        }
+        var again = await sb.from("recipes").select("id").limit(1);
+        if (!again.error && again.data && again.data.length) {
+          var all = await sb.from("recipes").select("*").order("title", { ascending: true });
+          if (all.error) throw all.error;
+          return all.data || [];
+        }
+        var r = await sb.from("recipes").insert(out).select();
+        if (r.error) throw r.error;
+        return r.data || out;
+      }
+
+      function replaceRow(row) {
+        var list = rows.filter(function (x) { return x.id !== row.id; });
+        list.push(row);
+        setRows(list);
+      }
+      async function updateRecipe(id, patch) {
+        var old = rows.filter(function (x) { return x.id === id; })[0];
+        if (!old) return;
+        replaceRow(Object.assign({}, old, patch));
+        renderAll();
+        try {
+          var r = await sb.from("recipes").update(patch).eq("id", id).select().single();
+          if (r.error) throw r.error;
+          replaceRow(r.data);
+          banner("");
+        } catch (e) {
+          replaceRow(old);
+          if (isNetErr(e)) banner("Ingen forbindelse. Ændringen blev ikke gemt.", true);
+          else banner("Kunne ikke gemme: " + errText(e), true);
+        }
+        renderAll();
+      }
+      async function deleteRecipe(id) {
+        var old = rows.filter(function (x) { return x.id === id; })[0];
+        if (!old) return;
+        $("del-yes").disabled = true;
+        try {
+          var r = await sb.from("recipes").delete().eq("id", id);
+          if (r.error) throw r.error;
+          setRows(rows.filter(function (x) { return x.id !== id; }));
+          var paths = (old.photo_urls || []).map(photoPath).filter(Boolean);
+          if (paths.length) sb.storage.from("photos").remove(paths).catch(function () {});
+          banner("");
+          closeRecipe();
+          renderAll();
+        } catch (e) {
+          if (isNetErr(e)) banner("Ingen forbindelse. Opskriften blev ikke slettet.", true);
+          else banner("Kunne ikke slette: " + errText(e), true);
+          window.scrollTo(0, 0);
+        } finally {
+          $("del-yes").disabled = false;
+          $("del-confirm").hidden = true;
+        }
+      }
+
+      // ---------- formular ----------
+      var form = { id: null, photos: [], startPhotos: [], tags: [] };
+      function formMsg(text, isError) {
+        $("f-msg").textContent = text || "";
+        $("f-msg").classList.toggle("is-error", !!isError);
+      }
+      function renderFormTags() {
+        var t = allTags();
+        form.tags.forEach(function (x) { if (t.indexOf(x) < 0) t.push(x); });
+        $("f-tags").innerHTML = t.map(function (x) {
+          return '<button type="button" class="x-tag" data-tag="' + esc(x) + '" aria-pressed="' + (form.tags.indexOf(x) >= 0) + '">' + esc(x) + "</button>";
+        }).join("");
+      }
+      function renderFormPhotos() {
+        $("f-photos").innerHTML = form.photos.map(function (p, i) {
+          return '<figure class="x-thumb"><img src="' + esc(p.kind === "old" ? p.url : p.preview) + '" alt="Billede ' + (i + 1) + '" />' +
+            '<button type="button" data-i="' + i + '" aria-label="Fjern billede ' + (i + 1) + '">✕</button></figure>';
+        }).join("");
+      }
+      function clearPreviews() {
+        form.photos.forEach(function (p) { if (p.preview) try { URL.revokeObjectURL(p.preview); } catch (e) {} });
+      }
+      function openForm(id) {
+        var row = id ? rows.filter(function (x) { return x.id === id; })[0] : null;
+        clearPreviews();
+        form.id = row ? row.id : null;
+        form.photos = row ? (row.photo_urls || []).map(function (u) { return { kind: "old", url: u }; }) : [];
+        form.startPhotos = row ? (row.photo_urls || []).slice() : [];
+        form.tags = row ? String(row.category || "").split(",").map(function (t) { return t.trim(); }).filter(Boolean) : [];
+        $("form-title").textContent = row ? "Ret opskrift" : "Ny opskrift";
+        $("f-title").value = row ? row.title || "" : "";
+        $("f-servings").value = row ? row.servings || "" : "";
+        $("f-ingredients").value = row ? row.ingredients || "" : "";
+        $("f-steps").value = row ? row.steps || "" : "";
+        $("f-notes").value = row ? row.notes || "" : "";
+        $("f-newtag").value = "";
+        $("f-save").disabled = false;
+        formMsg("");
+        renderFormTags();
+        renderFormPhotos();
+        setKitchen(false);
+        showView("form-view");
+      }
+      function closeForm() {
+        clearPreviews();
+        form.photos = [];
+        if (form.id && rows.some(function (x) { return x.id === form.id; })) openRecipe(form.id);
+        else { state.id = null; showView("list-view"); }
+      }
+      var saving = false;
+      async function saveForm(e) {
+        e.preventDefault();
+        if (saving) return;
+        var title = $("f-title").value.trim();
+        if (!title) { formMsg("Skriv en titel.", true); $("f-title").focus(); return; }
+        if (!sb) { formMsg("Ingen forbindelse. Opskriften er ikke gemt.", true); return; }
+        saving = true;
+        $("f-save").disabled = true;
+        formMsg("Gemmer...");
+        try {
+          var isNew = !form.id;
+          var id = form.id || uuid();
+          var n = form.photos.reduce(function (m, p) { return p.kind === "old" ? Math.max(m, photoNum(p.url)) : m; }, 0);
+          var urls = [];
+          for (var i = 0; i < form.photos.length; i++) {
+            var p = form.photos[i];
+            if (p.kind === "old") { urls.push(p.url); continue; }
+            formMsg("Gemmer... (billede " + (i + 1) + " af " + form.photos.length + ")");
+            var blob = await shrink(p.preview);
+            n += 1;
+            urls.push(await uploadPhoto(id, n, blob));
+          }
+          formMsg("Gemmer...");
+          var tags = form.tags.slice();
+          $("f-newtag").value.split(",").forEach(function (t) {
+            t = t.trim();
+            if (t) { t = t.charAt(0).toLocaleUpperCase("da") + t.slice(1); if (tags.indexOf(t) < 0) tags.push(t); }
+          });
+          var data = {
+            title: title,
+            category: tags.join(", "),
+            servings: $("f-servings").value.trim(),
+            ingredients: $("f-ingredients").value.trim(),
+            steps: $("f-steps").value.trim(),
+            notes: $("f-notes").value.trim(),
+            photo_urls: urls
+          };
+          var r;
+          if (isNew) {
+            data.id = id;
+            data.favorite = false;
+            data.created_by = currentEmail;
+            r = await sb.from("recipes").insert(data).select().single();
+          } else {
+            r = await sb.from("recipes").update(data).eq("id", id).select().single();
+          }
+          if (r.error) throw r.error;
+          var gone = form.startPhotos.filter(function (u) { return urls.indexOf(u) < 0; }).map(photoPath).filter(Boolean);
+          if (gone.length) sb.storage.from("photos").remove(gone).catch(function () {});
+          replaceRow(r.data);
+          form.id = id;
+          formMsg("Gemt!");
+          banner("");
+          setTimeout(function () { clearPreviews(); form.photos = []; openRecipe(id); renderTags(); renderList(); }, 700);
+        } catch (err) {
+          console.error(err);
+          formMsg(isNetErr(err) ? "Ingen forbindelse. Opskriften er ikke gemt. Prøv igen." : "Kunne ikke gemme: " + errText(err), true);
+          $("f-save").disabled = false;
+        } finally {
+          saving = false;
+        }
+      }
+
+      // ---------- ny opskrift: kun billede ----------
+      var newPhotos = [];
+      var savingNew = false;
+      function newMsg(text, isError) {
+        $("n-msg").textContent = text || "";
+        $("n-msg").classList.toggle("is-error", !!isError);
+      }
+      function clearNew() {
+        newPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.preview); } catch (e) {} });
+        newPhotos = [];
+      }
+      function renderNewPhotos() {
+        $("n-photos").innerHTML = newPhotos.map(function (p, i) {
+          return '<figure class="x-thumb"><img src="' + esc(p.preview) + '" alt="Valgt billede ' + (i + 1) + '" />' +
+            '<button type="button" data-i="' + i + '" aria-label="Fjern billede ' + (i + 1) + '">✕</button></figure>';
+        }).join("");
+        $("n-save").textContent = newPhotos.length > 1 ? "Gem (" + newPhotos.length + " billeder)" : "Gem";
+      }
+      function openNew() {
+        clearNew();
+        newMsg("");
+        $("n-save").disabled = false;
+        renderNewPhotos();
+        setKitchen(false);
+        state.id = null;
+        showView("new-view");
+      }
+      function closeNew() {
+        if (savingNew) return;
+        clearNew();
+        showView("list-view");
+      }
+      function newTitle() {
+        var m = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+        var d = new Date();
+        return "Ny opskrift " + d.getDate() + ". " + m[d.getMonth()];
+      }
+      async function saveNew() {
+        if (savingNew) return;
+        if (!newPhotos.length) { newMsg("Vælg mindst ét billede.", true); return; }
+        if (!sb) { newMsg("Ingen forbindelse. Opskriften er ikke gemt.", true); return; }
+        savingNew = true;
+        $("n-save").disabled = $("n-cancel").disabled = true;
+        try {
+          var id = uuid(), urls = [];
+          for (var i = 0; i < newPhotos.length; i++) {
+            newMsg("Gemmer... (billede " + (i + 1) + " af " + newPhotos.length + ")");
+            var blob = await shrink(newPhotos[i].preview);
+            urls.push(await uploadPhoto(id, i + 1, blob));
+          }
+          newMsg("Gemmer...");
+          var data = {
+            id: id,
+            title: newTitle(),
+            category: "",
+            servings: "",
+            ingredients: "",
+            steps: "",
+            notes: "",
+            photo_urls: urls,
+            favorite: false,
+            created_by: currentEmail
+          };
+          var r = await sb.from("recipes").insert(data).select().single();
+          if (r.error) throw r.error;
+          replaceRow(r.data);
+          banner("");
+          newMsg("");
+          clearNew();
+          renderTags();
+          renderList();
+          openRecipe(id);
+        } catch (err) {
+          console.error(err);
+          newMsg(isNetErr(err) ? "Ingen forbindelse. Opskriften er ikke gemt. Prøv igen." : "Kunne ikke gemme: " + errText(err), true);
+        } finally {
+          savingNew = false;
+          $("n-save").disabled = $("n-cancel").disabled = false;
+        }
+      }
+
+      // ---------- køkkentilstand ----------
+      async function setKitchen(on) {
+        state.kitchen = on;
+        document.body.classList.toggle("x-kitchen", on);
+        $("kitchen").setAttribute("aria-pressed", on);
+        $("wake-note").hidden = true;
+        if (on) {
+          try {
+            if (!("wakeLock" in navigator)) throw new Error("ikke understøttet");
+            wakeLock = await navigator.wakeLock.request("screen");
+          } catch (e) {
+            wakeLock = null;
+            if (state.kitchen) $("wake-note").hidden = false;
+          }
+        } else if (wakeLock) {
+          try { await wakeLock.release(); } catch (e) {}
+          wakeLock = null;
+        }
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (state.kitchen && document.visibilityState === "visible" && !wakeLock) setKitchen(true);
+      });
+
+      // ---------- hændelser ----------
+      $("search").addEventListener("input", function (e) { state.q = e.target.value; renderList(); });
+      $("tags").addEventListener("click", function (e) {
+        var b = e.target.closest(".x-tag");
+        if (!b) return;
+        var t = b.dataset.tag;
+        state.tag = state.tag === t ? "Alle" : t;
+        renderTags();
+        renderList();
+      });
+      $("results").addEventListener("click", function (e) {
+        var c = e.target.closest(".x-card");
+        if (c) openRecipe(c.dataset.id);
+      });
+      $("back").addEventListener("click", closeRecipe);
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && state.id) closeRecipe(); });
+      $("portions").addEventListener("click", function (e) {
+        var b = e.target.closest("button");
+        if (b) { state.factor = +b.dataset.f; renderRecipe(); }
+      });
+      $("minus").addEventListener("click", function () { state.factor = Math.max(0.5, state.factor - 0.5); renderRecipe(); });
+      $("plus").addEventListener("click", function () { state.factor = Math.min(10, state.factor + 0.5); renderRecipe(); });
+      $("kitchen").addEventListener("click", function () { setKitchen(!state.kitchen); });
+      $("orig-btn").addEventListener("click", function () {
+        var show = $("orig").hidden;
+        $("orig").hidden = !show;
+        this.setAttribute("aria-pressed", show);
+        this.textContent = show ? "Skjul originalen" : "Se originalen";
+        if (show) $("orig").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      $("orig").addEventListener("click", function (e) {
+        if (e.target.tagName === "IMG") this.classList.toggle("is-zoomed");
+      });
+
+      // log ind / ud
+      $("login-form").addEventListener("submit", function (e) { e.preventDefault(); doAuth("in"); });
+      $("login-btn").addEventListener("click", function (e) { e.preventDefault(); doAuth("in"); });
+      $("signup-btn").addEventListener("click", function () { doAuth("up"); });
+      $("logout").addEventListener("click", logout);
+      $("noaccess-logout").addEventListener("click", logout);
+
+      // opskrift-knapper
+      $("fav-btn").addEventListener("click", function () {
+        var r = RECIPES.filter(function (x) { return x.id === state.id; })[0];
+        if (r) updateRecipe(r.id, { favorite: !r.favorite });
+      });
+      $("made-btn").addEventListener("click", function () { if (state.id) updateRecipe(state.id, { last_made: today() }); });
+      $("edit-btn").addEventListener("click", function () { if (state.id) openForm(state.id); });
+      $("del-btn").addEventListener("click", function () { $("del-confirm").hidden = false; $("del-confirm").scrollIntoView({ behavior: "smooth", block: "center" }); });
+      $("del-no").addEventListener("click", function () { $("del-confirm").hidden = true; });
+      $("del-yes").addEventListener("click", function () { if (state.id) deleteRecipe(state.id); });
+
+      // formular
+      $("new-btn").addEventListener("click", openNew);
+      $("new-back").addEventListener("click", closeNew);
+      $("n-cancel").addEventListener("click", closeNew);
+      $("n-save").addEventListener("click", saveNew);
+      $("n-file").addEventListener("change", function () {
+        Array.prototype.forEach.call(this.files || [], function (f) {
+          if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name)) return;
+          newPhotos.push({ file: f, preview: URL.createObjectURL(f) });
+        });
+        this.value = "";
+        newMsg("");
+        renderNewPhotos();
+      });
+      $("n-photos").addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-i]");
+        if (!b) return;
+        var p = newPhotos.splice(+b.dataset.i, 1)[0];
+        if (p && p.preview) try { URL.revokeObjectURL(p.preview); } catch (err) {}
+        renderNewPhotos();
+      });
+      $("rhero").addEventListener("click", function (e) {
+        if (!e.target.closest("#hero-btn")) return;
+        $("orig").hidden = false;
+        $("orig-btn").setAttribute("aria-pressed", "true");
+        $("orig-btn").textContent = "Skjul originalen";
+        $("orig").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      $("form-cancel").addEventListener("click", closeForm);
+      $("rform").addEventListener("submit", saveForm);
+      $("f-tags").addEventListener("click", function (e) {
+        var b = e.target.closest(".x-tag");
+        if (!b) return;
+        var t = b.dataset.tag, i = form.tags.indexOf(t);
+        if (i >= 0) form.tags.splice(i, 1); else form.tags.push(t);
+        renderFormTags();
+      });
+      $("f-file").addEventListener("change", function () {
+        Array.prototype.forEach.call(this.files || [], function (f) {
+          if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name)) return;
+          form.photos.push({ kind: "new", file: f, preview: URL.createObjectURL(f) });
+        });
+        this.value = "";
+        formMsg("");
+        renderFormPhotos();
+      });
+      $("f-photos").addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-i]");
+        if (!b) return;
+        var p = form.photos.splice(+b.dataset.i, 1)[0];
+        if (p && p.preview) try { URL.revokeObjectURL(p.preview); } catch (err) {}
+        renderFormPhotos();
+      });
+
+      // forbindelse
+      window.addEventListener("offline", offlineBanner);
+      window.addEventListener("online", function () {
+        banner("");
+        if (currentEmail && ALLOWED.indexOf(currentEmail) >= 0) loadRecipes();
+      });
+
+      // start
+      (async function boot() {
+        renderTags();
+        if (!sb) {
+          showView("login-view");
+          loginMsg("Ingen forbindelse. Appen kunne ikke starte. Tjek internettet, og genindlæs siden.", true);
+          return;
+        }
+        var session = null;
+        try { var s = await withTimeout(sb.auth.getSession(), 5000); session = s && s.data ? s.data.session : null; } catch (e) { session = null; showView("login-view"); }
+        handleSession(session);
+        sb.auth.onAuthStateChange(function (event, sess) {
+          setTimeout(function () { handleSession(sess); }, 0);
+        });
+      })();
+    </script>
+    <script src="hark.js"></script>
+  </body>
+</html>
