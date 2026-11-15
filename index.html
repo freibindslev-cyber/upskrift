@@ -254,6 +254,7 @@
           <div class="x-actions" id="ractions">
             <button type="button" class="x-tool" id="fav-btn" aria-pressed="false">♡ Favorit</button>
             <button type="button" class="x-tool" id="made-btn">Lavet i dag</button>
+            <button type="button" class="x-tool" id="ai-btn" hidden>✨ Læs med AI</button>
             <button type="button" class="x-tool" id="edit-btn">Ret</button>
             <button type="button" class="x-tool x-danger" id="del-btn">Slet</button>
           </div>
@@ -300,7 +301,7 @@
           <button class="x-back" id="new-back" type="button">‹ Annuller</button>
           <h1 class="x-ftitle">Ny opskrift</h1>
           <label class="x-pick">📷 Tag eller vælg billede
-            <small>Du kan vælge flere billeder</small>
+            <small>Vælg gerne mange billeder på én gang. Appen finder selv ud af, hvor mange opskrifter der er, og skriver dem ind.</small>
             <input id="n-file" type="file" accept="image/*" multiple />
           </label>
           <div class="x-thumbs" id="n-photos"></div>
@@ -750,6 +751,7 @@
         if (!r.photos.length) $("orig").hidden = true;
         // Kun billede: vis billederne store (tryk for zoom) og intet andet
         var onlyPhotos = photoOnly && r.photos.length;
+        $("ai-btn").hidden = !onlyPhotos;
         if (onlyPhotos) {
           state.autoOrig = false;
           $("orig").hidden = false;
@@ -996,7 +998,9 @@
           var r = await sb.from("recipes").delete().eq("id", id);
           if (r.error) throw r.error;
           setRows(rows.filter(function (x) { return x.id !== id; }));
-          var paths = (old.photo_urls || []).map(photoPath).filter(Boolean);
+          var used = {};
+          rows.forEach(function (x) { (x.photo_urls || []).forEach(function (u) { var q = photoPath(u); if (q) used[q] = 1; }); });
+          var paths = (old.photo_urls || []).map(photoPath).filter(function (q) { return q && !used[q]; });
           if (paths.length) sb.storage.from("photos").remove(paths).catch(function () {});
           banner("");
           closeRecipe();
@@ -1161,6 +1165,38 @@
         var d = new Date();
         return "Ny opskrift " + d.getDate() + ". " + m[d.getMonth()];
       }
+      // ---------- AI: læs billeder og del i opskrifter ----------
+      function cleanUrl(u) { return String(u).split("?")[0]; }
+      async function aiRead(urls) {
+        var r = await withTimeout(sb.functions.invoke("read-recipes", { body: { photo_urls: urls.map(cleanUrl), tags: allTags() } }), 180000);
+        if (r.error) throw r.error;
+        var list = (r.data && r.data.recipes) || [];
+        if (!list.length) throw new Error("AI fandt ingen opskrifter på billederne");
+        return list;
+      }
+      function aiToRows(list, urls) {
+        return list.map(function (x) {
+          var meta = [];
+          if (x.subtitle) meta.push("Undertitel: " + x.subtitle);
+          if (x.time) meta.push("Tid: " + x.time);
+          if (x.source) meta.push("Kilde: " + x.source);
+          if (!x.handwritten) meta.push("Stil: printet");
+          var nums = (x.photos || []).filter(function (n, i, a) { return a.indexOf(n) === i; });
+          var pics = nums.map(function (n) { return urls[n - 1]; }).filter(Boolean);
+          return {
+            id: uuid(),
+            title: (function (t) { t = String(t || "").trim(); if (t && t === t.toUpperCase()) t = t.charAt(0) + t.slice(1).toLowerCase(); return t || newTitle(); })(x.title),
+            category: x.category || "",
+            servings: x.servings || "",
+            ingredients: (x.ingredients || []).join("\n"),
+            steps: (x.steps || []).join("\n"),
+            notes: meta.concat(x.notes || []).join("\n"),
+            photo_urls: pics.length ? pics : urls.slice(),
+            favorite: false,
+            created_by: currentEmail
+          };
+        });
+      }
       async function saveNew() {
         if (savingNew) return;
         if (!newPhotos.length) { newMsg("Vælg mindst ét billede.", true); return; }
@@ -1174,34 +1210,61 @@
             var blob = await shrink(newPhotos[i].preview);
             urls.push(await uploadPhoto(id, i + 1, blob));
           }
+          var data = null, aiFail = "";
+          newMsg("✨ Læser opskrifterne... (det tager typisk 20-60 sekunder)");
+          try { data = aiToRows(await aiRead(urls), urls); } catch (e) { console.error(e); aiFail = errText(e); }
+          if (!data) {
+            data = [{ id: id, title: newTitle(), category: "", servings: "", ingredients: "", steps: "", notes: "", photo_urls: urls, favorite: false, created_by: currentEmail }];
+          }
           newMsg("Gemmer...");
-          var data = {
-            id: id,
-            title: newTitle(),
-            category: "",
-            servings: "",
-            ingredients: "",
-            steps: "",
-            notes: "",
-            photo_urls: urls,
-            favorite: false,
-            created_by: currentEmail
-          };
-          var r = await sb.from("recipes").insert(data).select().single();
+          var r = await sb.from("recipes").insert(data).select();
           if (r.error) throw r.error;
-          replaceRow(r.data);
-          banner("");
+          (r.data || data).forEach(replaceRow);
+          banner(aiFail ? "Billederne er gemt, men AI kunne ikke læse dem lige nu. Åbn opskriften og tryk «Læs med AI» senere." : (data.length > 1 ? data.length + " nye opskrifter er lagt ind. Gule ord er jeg usikker på." : ""), !!aiFail);
           newMsg("");
           clearNew();
           renderTags();
           renderList();
-          openRecipe(id);
+          if (data.length === 1) openRecipe(data[0].id); else showView("list-view");
         } catch (err) {
           console.error(err);
           newMsg(isNetErr(err) ? "Ingen forbindelse. Opskriften er ikke gemt. Prøv igen." : "Kunne ikke gemme: " + errText(err), true);
         } finally {
           savingNew = false;
           $("n-save").disabled = $("n-cancel").disabled = false;
+        }
+      }
+      // Opskrift der kun er billeder: læs den med AI og erstat den med de rigtige opskrifter
+      var aiBusy = false;
+      async function aiExisting(id) {
+        var old = rows.filter(function (x) { return x.id === id; })[0];
+        if (!old || aiBusy) return;
+        var urls = old.photo_urls || [];
+        if (!urls.length) return;
+        aiBusy = true;
+        $("ai-btn").disabled = true;
+        $("ai-btn").textContent = "✨ Læser... (op til 1 minut)";
+        try {
+          var data = aiToRows(await aiRead(urls), urls);
+          if (old.favorite) data.forEach(function (d) { d.favorite = true; });
+          var r = await sb.from("recipes").insert(data).select();
+          if (r.error) throw r.error;
+          var d = await sb.from("recipes").delete().eq("id", id);
+          if (d.error) throw d.error;
+          setRows(rows.filter(function (x) { return x.id !== id; }));
+          (r.data || data).forEach(replaceRow);
+          banner(data.length > 1 ? data.length + " opskrifter er lagt ind. Gule ord er jeg usikker på." : "");
+          renderTags();
+          renderList();
+          if (data.length === 1) openRecipe(data[0].id); else { closeRecipe(); renderAll(); }
+        } catch (e) {
+          console.error(e);
+          banner("AI kunne ikke læse billederne: " + errText(e), true);
+          window.scrollTo(0, 0);
+        } finally {
+          aiBusy = false;
+          $("ai-btn").disabled = false;
+          $("ai-btn").textContent = "✨ Læs med AI";
         }
       }
 
@@ -1276,6 +1339,7 @@
       });
       $("made-btn").addEventListener("click", function () { if (state.id) updateRecipe(state.id, { last_made: today() }); });
       $("edit-btn").addEventListener("click", function () { if (state.id) openForm(state.id); });
+      $("ai-btn").addEventListener("click", function () { if (state.id) aiExisting(state.id); });
       $("del-btn").addEventListener("click", function () { $("del-confirm").hidden = false; $("del-confirm").scrollIntoView({ behavior: "smooth", block: "center" }); });
       $("del-no").addEventListener("click", function () { $("del-confirm").hidden = true; });
       $("del-yes").addEventListener("click", function () { if (state.id) deleteRecipe(state.id); });
