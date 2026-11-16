@@ -50,7 +50,9 @@
       .x-top { display: grid; gap: 12px; position: sticky; top: 0; z-index: 10; padding: 12px 0 10px; background: var(--fill-primary-on); }
       .x-top h1 { margin: 0; font: var(--type-title); font-weight: var(--weight-medium); }
       .x-brand { display: flex; align-items: center; gap: 12px; }
-      .x-brand img { width: 56px; height: 56px; object-fit: contain; border-radius: var(--r-s); flex: none; }
+      .x-brand > img { width: 56px; height: 56px; object-fit: contain; border-radius: var(--r-s); flex: none; }
+      .x-wordmark { display: block; height: 44px; width: auto; }
+      .x-people { min-width: 7.5em; text-align: center; font: var(--type-label); padding: 0 4px; }
       .x-search { width: 100%; box-sizing: border-box; min-height: 52px; padding: 12px 16px; border-radius: var(--r-m); border: 1px solid var(--stroke-primary); background: var(--fill-tertiary); color: var(--text-primary); font: var(--weight-regular) var(--size-prose)/var(--lh) var(--sans); }
       .x-search::placeholder { color: var(--text-secondary); }
       .x-search:focus { outline: 2px solid var(--fill-primary); outline-offset: 1px; }
@@ -197,10 +199,10 @@
     <div class="page" id="top">
       <main class="main">
         <div class="x-brandbar x-brand">
-          <img src="upskrift-logo.png" alt="UpSkrift logo" width="56" height="56" />
+          <img src="upskrift-mark.png" alt="" width="56" height="56" />
           <div class="x-brand__name">
-            <h1>UpSkrift</h1>
-            <p class="x-brand__sub">Familiens køkken</p>
+            <h1><img class="x-wordmark" src="upskrift-wordmark.png" alt="UpSkrift" width="132" height="48" /></h1>
+            <p class="x-brand__sub">Bindslev's køkken</p>
           </div>
           <button type="button" class="x-logout" id="logout" hidden>Log ud</button>
         </div>
@@ -209,7 +211,6 @@
         <!-- LOG IND -->
         <div id="login-view" class="main" hidden>
           <form class="x-login x-form" id="login-form" novalidate>
-            <p class="x-lead">Kun Frei og Maja har adgang.</p>
             <label class="x-field"><span>E-mail</span>
               <input id="email" class="x-input" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" />
             </label>
@@ -236,7 +237,7 @@
         <!-- LISTE -->
         <div id="list-view" class="main" hidden>
           <div class="x-top">
-            <input id="search" class="x-search" type="search" autocomplete="off" aria-label="Søg i opskrifter" placeholder="Søg i titel eller ingredienser, fx kylling kokosmælk" />
+            <input id="search" class="x-search" type="search" autocomplete="off" aria-label="Søg i opskrifter" placeholder="Søg" />
             <div class="x-tags" id="tags" role="toolbar" aria-label="Filtrér efter type"></div>
           </div>
           <div id="results" class="main"></div>
@@ -278,6 +279,13 @@
                 <button type="button" id="plus" aria-label="Mere">+</button>
               </div>
               <span class="x-persons" id="persons"></span>
+            </div>
+            <div class="x-tools__row" id="people-row" hidden>
+              <div class="x-seg" role="group" aria-label="Antal personer">
+                <button type="button" id="p-minus" aria-label="Én person færre">−</button>
+                <span class="x-people" id="people" aria-live="polite"></span>
+                <button type="button" id="p-plus" aria-label="Én person mere">+</button>
+              </div>
             </div>
             <div class="x-tools__row">
               <button type="button" class="x-tool" id="kitchen" aria-pressed="false">Køkkentilstand</button>
@@ -351,7 +359,7 @@
       </main>
 
       <footer class="foot">
-        <p>UpSkrift · Backup af originalfotos ligger i Google Drive-mappen 'Opskrifter (backup)'.<br /><strong id="count"></strong></p>
+        <p><strong id="count"></strong></p>
         <a class="badge" href="https://hark.com/" target="_blank" rel="noopener"><span class="hark-mark"></span><span>built by hark</span></a>
       </footer>
     </div>
@@ -654,7 +662,7 @@
           '<span class="x-card__text">' +
           '<span class="x-card__title"><span>' + esc(r.title) + "</span>" + (r.favorite ? '<span class="x-star" aria-label="Favorit">♥</span>' : "") + "</span>" +
           (r.subtitle ? '<span class="x-card__sub">' + esc(r.subtitle) + "</span>" : "") +
-          '<span class="x-card__row">' + (r.printed ? '<span class="pill">Printet</span>' : "") +
+          '<span class="x-card__row">' +
           (!r.ingredients.trim() && !r.steps.trim() && r.photos.length ? '<span class="pill">Kun billede</span>' : "") +
           (r.time ? '<span class="pill">' + esc(r.time) + "</span>" : "") +
           r.tags.map(function (t) { return '<span class="x-tagpill">' + esc(t) + "</span>"; }).join("") + "</span>" +
@@ -691,7 +699,7 @@
         var r = RECIPES.filter(function (x) { return x.id === state.id; })[0];
         if (!r) return;
         var hand = !r.printed;
-        var pills = (r.printed ? '<span class="pill">Printet</span>' : "") +
+        var pills = 
           (r.time ? '<span class="pill">' + esc(r.time) + "</span>" : "") +
           r.tags.map(function (t) { return '<span class="x-tagpill">' + esc(t) + "</span>"; }).join("");
         $("rhead").innerHTML =
@@ -708,7 +716,12 @@
 
         // portioner
         var canScale = hasAmounts(r);
-        $("portion-row").hidden = !canScale;
+        var byPeople = canScale && r.persons > 0;
+        if (byPeople && !state.people) state.people = Math.round(r.persons * state.factor) || r.persons;
+        if (byPeople) state.factor = state.people / r.persons;
+        $("portion-row").hidden = !canScale || byPeople;
+        $("people-row").hidden = !byPeople;
+        if (byPeople) $("people").textContent = state.people + (state.people === 1 ? " person" : " personer");
         Array.prototype.forEach.call($("portions").children, function (b) { b.setAttribute("aria-pressed", +b.dataset.f === state.factor); });
         $("persons").textContent = r.persons ? "til " + fmt(r.persons * state.factor) + " personer" : (state.factor !== 1 ? fmt(state.factor) + "× mængden" : "");
 
@@ -772,7 +785,7 @@
 
       function openRecipe(id) {
         state.id = id;
-        state.factor = 1;
+        state.factor = 1; state.people = null;
         $("orig").hidden = true;
         $("orig").classList.remove("is-zoomed");
         $("orig-btn").setAttribute("aria-pressed", "false");
@@ -1313,6 +1326,8 @@
       });
       $("minus").addEventListener("click", function () { state.factor = Math.max(0.5, state.factor - 0.5); renderRecipe(); });
       $("plus").addEventListener("click", function () { state.factor = Math.min(10, state.factor + 0.5); renderRecipe(); });
+      $("p-minus").addEventListener("click", function () { state.people = Math.max(1, (state.people || 1) - 1); renderRecipe(); });
+      $("p-plus").addEventListener("click", function () { state.people = Math.min(99, (state.people || 1) + 1); renderRecipe(); });
       $("kitchen").addEventListener("click", function () { setKitchen(!state.kitchen); });
       $("orig-btn").addEventListener("click", function () {
         var show = $("orig").hidden;
