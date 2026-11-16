@@ -9,9 +9,9 @@
     <meta name="application-name" content="UpSkrift" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#FBF6EE" />
-    <link rel="icon" type="image/png" href="upskrift-icon.png" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" href="upskrift-icon.png?v=2" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2" />
+    <link rel="manifest" href="manifest.json?v=2" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -52,7 +52,11 @@
       .x-brand { display: flex; align-items: center; gap: 12px; }
       .x-brand > img { width: 56px; height: 56px; object-fit: contain; border-radius: var(--r-s); flex: none; }
       .x-wordmark { display: block; height: 44px; width: auto; }
-      .x-people { min-width: 7.5em; text-align: center; font: var(--type-label); padding: 0 4px; }
+      .x-people { display: inline-flex; align-items: center; justify-content: center; min-width: 7.5em; padding: 0 6px; font: var(--type-label); white-space: nowrap; }
+      #people-row .x-seg { align-items: center; }
+      #people-row .x-seg button { font-size: 1.25rem; line-height: 1; }
+      .x-trash { display: inline-flex; align-items: center; justify-content: center; width: var(--tap); min-height: var(--tap); margin-left: auto; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text-secondary); opacity: .6; cursor: pointer; }
+      .x-trash:hover, .x-trash:focus-visible { opacity: 1; color: var(--fill-system-red); }
       .x-search { width: 100%; box-sizing: border-box; min-height: 52px; padding: 12px 16px; border-radius: var(--r-m); border: 1px solid var(--stroke-primary); background: var(--fill-tertiary); color: var(--text-primary); font: var(--weight-regular) var(--size-prose)/var(--lh) var(--sans); }
       .x-search::placeholder { color: var(--text-secondary); }
       .x-search:focus { outline: 2px solid var(--fill-primary); outline-offset: 1px; }
@@ -257,7 +261,7 @@
             <button type="button" class="x-tool" id="made-btn">Lavet i dag</button>
             <button type="button" class="x-tool" id="ai-btn" hidden>✨ Læs med AI</button>
             <button type="button" class="x-tool" id="edit-btn">Ret</button>
-            <button type="button" class="x-tool x-danger" id="del-btn">Slet</button>
+            <button type="button" class="x-trash" id="del-btn" aria-label="Slet opskrift" title="Slet opskrift"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
           </div>
           <div class="x-confirm" id="del-confirm" hidden>
             <p>Er du sikker? Opskriften bliver slettet for jer begge.</p>
