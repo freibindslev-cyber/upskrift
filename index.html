@@ -109,6 +109,7 @@
       /* Brand row, login, banner */
       .x-brandbar { display: flex; align-items: center; gap: 12px; padding-top: 12px; }
       .x-brandbar h1 { margin: 0; font: var(--type-title); font-weight: var(--weight-medium); }
+      .x-logout--tight { margin-left: 0 !important; }
       .x-logout { margin-left: auto; min-height: var(--tap); padding: 0 6px; border: 0; background: none; color: var(--text-secondary); font: var(--type-small); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
       body.x-in-recipe .x-brandbar { display: none; }
       .x-banner { margin: 0; display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: var(--r-m); background: var(--fill-tertiary); font: var(--type-label); }
@@ -116,6 +117,12 @@
       .x-banner.is-error::before { background: var(--fill-system-red); }
       .x-login { display: grid; gap: 16px; padding: 20px; border-radius: var(--r-l); background: var(--x-card); box-shadow: var(--x-shadow); }
       .x-login p { margin: 0; }
+      #admin-view { gap: 16px; }
+      .x-members, .x-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+      .x-members li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--stroke-primary); }
+      .x-members li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+      .x-members small, .x-log small { color: var(--text-secondary); }
+      .x-log li { padding: 6px 0; border-bottom: 1px solid var(--stroke-primary); font: var(--type-small); }
       .x-lead { font: var(--type-body); color: var(--text-secondary); }
 
       /* Forms */
@@ -208,7 +215,8 @@
             <h1><img class="x-wordmark" src="upskrift-wordmark.png" alt="UpSkrift" width="132" height="48" /></h1>
             <p class="x-brand__sub">Bindslev's køkken</p>
           </div>
-          <button type="button" class="x-logout" id="logout" hidden>Log ud</button>
+          <button type="button" class="x-logout" id="admin-btn" hidden>Adgang og log</button>
+          <button type="button" class="x-logout x-logout--tight" id="logout" hidden>Log ud</button>
         </div>
         <p class="x-banner" id="banner" role="status" hidden></p>
 
@@ -233,8 +241,9 @@
           <div class="x-login">
             <p class="x-ftitle">Denne e-mail har ikke adgang.</p>
             <p class="x-lead" id="noaccess-email"></p>
-            <p class="x-lead">Kun Frei og Maja har adgang.</p>
-            <button type="button" class="x-primary" id="noaccess-logout">Log ud</button>
+            <p class="x-lead">Bed Frei om at give dig adgang. Tryk så «Prøv igen».</p>
+            <button type="button" class="x-primary" id="noaccess-retry">Prøv igen</button>
+            <button type="button" class="x-tool x-wide" id="noaccess-logout">Log ud</button>
           </div>
         </div>
 
@@ -306,6 +315,26 @@
           <p class="x-legend" id="legend" hidden><mark class="x-unsure">Gul<sup>?</sup></mark> = jeg er usikker på, hvad der står</p>
           <article class="x-sheet" id="sheet"></article>
 
+        </div>
+
+        <!-- ADGANG OG LOG (kun Frei og Maja) -->
+        <div id="admin-view" class="main" hidden>
+          <button class="x-back" id="admin-back" type="button">‹ Tilbage</button>
+          <section class="x-login">
+            <p class="x-ftitle">Hvem har adgang</p>
+            <ul class="x-members" id="members"></ul>
+            <form class="x-form" id="member-form" novalidate>
+              <label class="x-field"><span>Navn</span><input id="m-name" class="x-input" type="text" autocomplete="off" placeholder="Fx Mormor" /></label>
+              <label class="x-field"><span>E-mail</span><input id="m-email" class="x-input" type="email" inputmode="email" autocapitalize="off" spellcheck="false" autocomplete="off" /></label>
+              <p class="x-msg" id="m-msg" role="status"></p>
+              <button type="submit" class="x-primary">Giv adgang</button>
+              <p class="fineprint">Send dem linket. Første gang trykker de «Opret bruger» med netop den e-mail og vælger en adgangskode. Derefter er de logget ind af sig selv.</p>
+            </form>
+          </section>
+          <section class="x-login">
+            <p class="x-ftitle">Log</p>
+            <ul class="x-log" id="log"></ul>
+          </section>
         </div>
 
         <!-- NY OPSKRIFT: KUN BILLEDE -->
@@ -385,7 +414,8 @@
       var SB_URL = "https://yllrcsdzvyztjdxosiec.supabase.co";
       var SB_KEY = "sb_publishable_ETlKiLsJFEjAmCfZNjKxFw_iEJLMsj_";
       var PHOTO_BASE = SB_URL + "/storage/v1/object/public/photos/";
-      var ALLOWED = ["freibindslev@gmail.com", "mibsen1@hotmail.com"];
+      var APP_VERSION = "2026-11-16-3";
+      var isAdmin = false, isMember = false;
       var BASE_TAGS = ["Hovedret", "Vegetar", "Fisk", "Pasta", "Frikadeller", "Hurtig"];
 
       // localStorage kan kaste fejl i en sandkasse – så bruger vi hukommelsen i stedet.
@@ -805,9 +835,10 @@
         showView("list-view");
       }
       function showView(v) {
-        ["login-view", "noaccess-view", "list-view", "recipe-view", "form-view", "new-view"].forEach(function (id) { $(id).hidden = id !== v; });
+        ["login-view", "noaccess-view", "list-view", "recipe-view", "form-view", "new-view", "admin-view"].forEach(function (id) { $(id).hidden = id !== v; });
         $("fab").hidden = v !== "list-view";
         $("logout").hidden = v !== "list-view";
+        $("admin-btn").hidden = v !== "list-view" || !isAdmin;
         document.body.classList.toggle("x-in-recipe", v !== "list-view");
         document.body.classList.toggle("x-login-screen", v === "login-view" || v === "noaccess-view");
         window.scrollTo(0, 0);
@@ -837,7 +868,6 @@
         var email = $("email").value.trim().toLowerCase(), pw = $("pw").value;
         if (!email || !pw) { loginMsg("Skriv både e-mail og adgangskode.", true); return; }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { loginMsg("Skriv en rigtig e-mail.", true); return; }
-        if (ALLOWED.indexOf(email) < 0) { loginMsg("Denne e-mail har ikke adgang.", true); return; }
         if (kind === "up" && pw.length < 6) { loginMsg("Adgangskoden skal være mindst 6 tegn.", true); return; }
         if (!sb) { loginMsg("Ingen forbindelse. Appen kunne ikke starte. Prøv igen senere.", true); return; }
         authBusy = true;
@@ -868,6 +898,8 @@
       async function logout() {
         try { if (sb) await sb.auth.signOut(); } catch (e) {}
         try { safeStorage.removeItem(CACHE_KEY); } catch (e) {}
+        try { safeStorage.removeItem(memberCache); } catch (e) {}
+        isMember = isAdmin = false;
         rows = []; RECIPES = [];
         handleSession(null);
       }
@@ -877,14 +909,114 @@
         currentEmail = email;
         banner("");
         if (!email) { setKitchen(false); state.id = null; showView("login-view"); return; }
-        if (ALLOWED.indexOf(email) < 0) {
-          $("noaccess-email").textContent = email;
+        checkMember(email);
+      }
+
+      // ---------- medlemmer, adgang og log ----------
+      var memberCache = "upskrift-member-v1";
+      async function checkMember(email) {
+        var cached = null;
+        try { cached = JSON.parse(safeStorage.getItem(memberCache) || "null"); } catch (e) {}
+        if (cached && cached.email === email) { applyMember(cached); }
+        try {
+          var r = await withTimeout(sb.from("members").select("email,role").eq("email", email).maybeSingle(), 10000);
+          if (r.error) throw r.error;
+          var m = r.data ? { email: email, role: r.data.role } : { email: email, role: null };
+          safeStorage.setItem(memberCache, JSON.stringify(m));
+          if (email !== currentEmail) return;
+          applyMember(m);
+        } catch (e) {
+          console.error(e);
+          if (!cached || cached.email !== email) { showView("list-view"); offlineBanner(); }
+        }
+      }
+      function applyMember(m) {
+        var was = isMember;
+        isMember = !!m.role; isAdmin = m.role === "admin";
+        if (!isMember) {
+          $("noaccess-email").textContent = m.email;
           showView("noaccess-view");
           return;
         }
-        showView("list-view");
-        setTimeout(function () { loadRecipes(); }, 0);
+        if (!$("noaccess-view").hidden || !$("login-view").hidden || !was) {
+          if ($("recipe-view").hidden && $("form-view").hidden && $("new-view").hidden && $("admin-view").hidden) showView("list-view");
+          setTimeout(function () { loadRecipes(); }, 0);
+        }
+        $("admin-btn").hidden = !$("list-view").hidden ? !isAdmin : true;
+        $("del-btn").hidden = !isAdmin;
       }
+      var memberNames = {};
+      function who(email) { return memberNames[email] || email || "Systemet"; }
+      var FIELD_DA = { title: "titel", category: "kategori", servings: "personer", ingredients: "ingredienser", steps: "fremgangsmåde", notes: "noter", photo_urls: "billeder", favorite: "favorit", last_made: "lavet senest" };
+      function logText(x) {
+        var t = "«" + esc(x.title || "") + "»";
+        if (x.action === "insert") return "tilføjede " + t;
+        if (x.action === "delete") return "slettede " + t;
+        if (x.action === "member_add") return "gav adgang til " + esc(x.title || "");
+        if (x.action === "member_remove") return "fjernede adgang for " + esc(x.title || "");
+        var f = (x.fields || []).map(function (k) { return FIELD_DA[k] || k; });
+        if (f.length === 1 && f[0] === "favorit") return "ændrede favorit på " + t;
+        if (f.length === 1 && f[0] === "lavet senest") return "markerede " + t + " som lavet";
+        return "rettede " + t + (f.length ? " <small>(" + esc(f.join(", ")) + ")</small>" : "");
+      }
+      function stamp(iso) {
+        var d = new Date(iso);
+        return d.toLocaleDateString("da-DK", { day: "numeric", month: "short" }) + " kl. " + d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+      }
+      async function openAdmin() {
+        showView("admin-view");
+        $("members").innerHTML = '<li><small>Henter...</small></li>';
+        $("log").innerHTML = '<li><small>Henter...</small></li>';
+        try {
+          var m = await sb.from("members").select("*").order("added_at", { ascending: true });
+          if (m.error) throw m.error;
+          memberNames = {};
+          m.data.forEach(function (x) { memberNames[x.email] = x.name || x.email; });
+          $("members").innerHTML = m.data.map(function (x) {
+            return "<li><span>" + esc(x.name || "") + "<br /><small>" + esc(x.email) + (x.role === "admin" ? " · kan også slette" : "") + "</small></span>" +
+              (x.email === currentEmail || x.role === "admin" ? "" : '<button type="button" class="x-tool" data-rm="' + esc(x.email) + '">Fjern</button>') + "</li>";
+          }).join("");
+          var l = await sb.from("activity_log").select("*").order("at", { ascending: false }).limit(200);
+          if (l.error) throw l.error;
+          $("log").innerHTML = l.data.length ? l.data.map(function (x) {
+            return "<li><small>" + stamp(x.at) + "</small><br />" + esc(who(x.email)) + " " + logText(x) + "</li>";
+          }).join("") : "<li><small>Intet endnu.</small></li>";
+        } catch (e) { $("log").innerHTML = '<li class="is-error">Kunne ikke hente: ' + esc(errText(e)) + "</li>"; }
+      }
+      async function addMember(e) {
+        e.preventDefault();
+        var name = $("m-name").value.trim(), email = $("m-email").value.trim().toLowerCase();
+        var msg = $("m-msg");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = "Skriv en rigtig e-mail."; return; }
+        msg.textContent = "Gemmer...";
+        var r = await sb.from("members").insert({ email: email, name: name || null, role: "member", added_by: currentEmail });
+        if (r.error) { msg.textContent = /duplicate/i.test(errText(r.error)) ? "Den e-mail har allerede adgang." : "Fejl: " + errText(r.error); return; }
+        msg.textContent = (name || email) + " har nu adgang.";
+        $("m-name").value = ""; $("m-email").value = "";
+        openAdmin();
+      }
+      async function removeMember(email) {
+        if (!confirm("Fjern adgang for " + email + "?")) return;
+        var r = await sb.from("members").delete().eq("email", email);
+        if (r.error) { alert("Fejl: " + errText(r.error)); return; }
+        openAdmin();
+      }
+
+      // ---------- ny version ----------
+      async function checkVersion() {
+        try {
+          var r = await fetch("version.txt?t=" + Date.now(), { cache: "no-store" });
+          if (!r.ok) return;
+          var v = (await r.text()).trim();
+          if (v && v !== APP_VERSION) {
+            var key = "upskrift-reloaded-" + v;
+            if (safeStorage.getItem(key)) return;
+            safeStorage.setItem(key, "1");
+            location.replace(location.pathname + "?v=" + encodeURIComponent(v));
+          }
+        } catch (e) {}
+      }
+      document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") checkVersion(); });
 
       // ---------- data ----------
       var loading = false;
@@ -1345,6 +1477,11 @@
       });
 
       // log ind / ud
+      $("admin-btn").addEventListener("click", openAdmin);
+      $("admin-back").addEventListener("click", function () { showView("list-view"); });
+      $("member-form").addEventListener("submit", addMember);
+      $("members").addEventListener("click", function (e) { var b = e.target.closest("[data-rm]"); if (b) removeMember(b.dataset.rm); });
+      $("noaccess-retry").addEventListener("click", function () { if (currentEmail) checkMember(currentEmail); });
       $("login-form").addEventListener("submit", function (e) { e.preventDefault(); doAuth("in"); });
       $("login-btn").addEventListener("click", function (e) { e.preventDefault(); doAuth("in"); });
       $("signup-btn").addEventListener("click", function () { doAuth("up"); });
@@ -1421,12 +1558,13 @@
       window.addEventListener("offline", offlineBanner);
       window.addEventListener("online", function () {
         banner("");
-        if (currentEmail && ALLOWED.indexOf(currentEmail) >= 0) loadRecipes();
+        if (currentEmail && isMember) loadRecipes();
       });
 
       // start
       (async function boot() {
         renderTags();
+        checkVersion();
         if (!sb) {
           showView("login-view");
           loginMsg("Ingen forbindelse. Appen kunne ikke starte. Tjek internettet, og genindlæs siden.", true);
